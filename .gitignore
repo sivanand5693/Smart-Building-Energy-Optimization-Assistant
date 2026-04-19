@@ -49,3 +49,6 @@ backend/alembic/versions/*.pyc
 # Playwright
 test-results/
 playwright-report/
+
+# TypeScript
+*.tsbuildinfo

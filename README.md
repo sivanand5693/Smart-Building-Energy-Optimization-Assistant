@@ -94,43 +94,65 @@ project/
 ## Local Setup
 
 ### Prerequisites
-- Python 3.11+
+- Python 3.12+
 - Node.js 18+
-- PostgreSQL (via `brew install postgresql` on Mac)
+- PostgreSQL 16 (`brew install postgresql@16 && brew services start postgresql@16`)
 
-### Backend
+### One-time setup
 ```bash
-cd backend
-python -m venv .venv
+# Python venv + dependencies (at project root)
+python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
+playwright install chromium
 
-### Frontend
-```bash
-cd frontend
-npm install
-npm start
-```
+# Frontend dependencies
+cd frontend && npm install && cd ..
 
-### Database
-```bash
+# Databases
 createdb smart_building_dev
+createdb smart_building_test
+
+# Apply migrations
 cd backend
 alembic upgrade head
+TESTING=1 alembic upgrade head
+cd ..
+```
+
+### Run the dev stack
+
+Terminal 1 — Backend:
+```bash
+source .venv/bin/activate
+cd backend && uvicorn app.main:app --reload
+```
+
+Terminal 2 — Frontend:
+```bash
+cd frontend && npm run dev
 ```
 
 ### Run Acceptance Tests
+
+Behave auto-starts the backend in `TESTING=1` mode against `smart_building_test`. You only need Vite running for UI scenarios.
+
 ```bash
-cd tests
-behave acceptance/features/
+source .venv/bin/activate
+cd frontend && npm run dev &          # leave running in another terminal
+cd ..
+PYTHONPATH="./backend:." behave tests/acceptance/features/
+```
+
+Single feature:
+```bash
+PYTHONPATH="./backend:." behave tests/acceptance/features/UC1_RegisterBuildingProfile.feature
 ```
 
 ### Run Unit Tests
 ```bash
-cd backend
-pytest ../tests/unit/
+source .venv/bin/activate
+PYTHONPATH="./backend" pytest tests/unit/
 ```
 
 ---
@@ -141,5 +163,6 @@ Copy `.env.example` to `.env` and fill in:
 
 ```
 DATABASE_URL=postgresql://localhost/smart_building_dev
+TEST_DATABASE_URL=postgresql://localhost/smart_building_test
 ANTHROPIC_API_KEY=your_key_here
 ```

@@ -22,25 +22,29 @@ Implement and validate **one use case at a time**. Save artifacts to `docs/UCN/`
 ```bash
 source .venv/bin/activate
 cd backend && uvicorn app.main:app --reload
-pytest tests/unit/
-pytest tests/unit/test_building_service.py  # single file
+PYTHONPATH="./backend" pytest tests/unit/
+PYTHONPATH="./backend" pytest tests/unit/test_building_service.py  # single file
 ```
 
 ### Frontend
 ```bash
-cd frontend && npm start
+cd frontend && npm run dev          # Vite dev server on :5173
 ```
 
 ### Database
 ```bash
 createdb smart_building_dev
-cd backend && alembic upgrade head
+createdb smart_building_test
+cd backend
+alembic upgrade head                 # dev DB
+TESTING=1 alembic upgrade head       # test DB
 ```
 
 ### Acceptance Tests
+Behave auto-starts the backend in `TESTING=1` mode on port 8000 against `smart_building_test`. Vite must be running in another terminal for UI scenarios.
 ```bash
-behave tests/acceptance/features/
-behave tests/acceptance/features/UC1_RegisterBuildingProfile.feature  # single UC
+PYTHONPATH="./backend:." behave tests/acceptance/features/
+PYTHONPATH="./backend:." behave tests/acceptance/features/UC1_RegisterBuildingProfile.feature  # single UC
 ```
 
 ## Architecture
