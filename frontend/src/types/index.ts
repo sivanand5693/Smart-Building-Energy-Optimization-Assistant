@@ -28,3 +28,24 @@ export interface BuildingProfileResult {
 export interface ValidationErrorResponse {
   detail: { errors: Record<string, string> };
 }
+
+export interface ZoneSummary {
+  id: number;
+  name: string;
+}
+
+export interface BuildingSummary {
+  id: number;
+  name: string;
+  zones: ZoneSummary[];
+}
+
+export interface ImportResult {
+  records_imported: number;
+}
+
+export interface ImportErrorItem {
+  row: number | null;
+  field: string | null;
+  message: string;
+}

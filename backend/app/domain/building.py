@@ -29,6 +29,17 @@ class BuildingProfileResult(BaseModel):
     name: str
 
 
+class ZoneSummary(BaseModel):
+    id: int
+    name: str
+
+
+class BuildingSummary(BaseModel):
+    id: int
+    name: str
+    zones: list[ZoneSummary]
+
+
 class ValidationFailure(Exception):
     def __init__(self, errors: dict[str, str]):
         self.errors = errors

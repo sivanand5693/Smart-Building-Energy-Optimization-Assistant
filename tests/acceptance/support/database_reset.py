@@ -8,8 +8,8 @@ def reset_test_database() -> None:
     with engine.begin() as conn:
         conn.execute(
             text(
-                "TRUNCATE operating_schedules, devices, zones, buildings "
-                "RESTART IDENTITY CASCADE"
+                "TRUNCATE occupancy_records, operating_schedules, devices, "
+                "zones, buildings RESTART IDENTITY CASCADE"
             )
         )
     engine.dispose()
