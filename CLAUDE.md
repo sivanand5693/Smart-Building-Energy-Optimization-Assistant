@@ -20,10 +20,10 @@ Implement and validate **one use case at a time**. Save artifacts to `docs/UCN/`
 
 ### Backend
 ```bash
-cd backend && source .venv/bin/activate
-uvicorn app.main:app --reload
-pytest ../tests/unit/
-pytest ../tests/unit/test_building_service.py  # single file
+source .venv/bin/activate
+cd backend && uvicorn app.main:app --reload
+pytest tests/unit/
+pytest tests/unit/test_building_service.py  # single file
 ```
 
 ### Frontend
