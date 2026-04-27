@@ -3,6 +3,7 @@ from app.infrastructure.models.zone_model import ZoneModel
 from app.infrastructure.models.device_model import DeviceModel
 from app.infrastructure.models.operating_schedule_model import OperatingScheduleModel
 from app.infrastructure.models.occupancy_model import OccupancyRecordModel
+from app.infrastructure.models.forecast_model import DemandForecastModel
 
 __all__ = [
     "BuildingModel",
@@ -10,4 +11,5 @@ __all__ = [
     "DeviceModel",
     "OperatingScheduleModel",
     "OccupancyRecordModel",
+    "DemandForecastModel",
 ]

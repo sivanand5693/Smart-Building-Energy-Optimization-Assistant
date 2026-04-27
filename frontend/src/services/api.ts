@@ -2,8 +2,10 @@ import type {
   BuildingProfileInput,
   BuildingProfileResult,
   BuildingSummary,
+  ForecastRunResponse,
   ImportErrorItem,
   ImportResult,
+  ZoneForecast,
 } from "../types";
 
 export type RegisterResult =
@@ -72,4 +74,33 @@ export async function importOccupancy(
     ok: false,
     errors: [{ row: null, field: null, message: `Unexpected error (${res.status})` }],
   };
+}
+
+export type RunForecastResult =
+  | { ok: true; data: ForecastRunResponse }
+  | { ok: false; missingInputs: string[]; message?: string };
+
+export async function runForecast(buildingId: number): Promise<RunForecastResult> {
+  const res = await fetch(`/api/buildings/${buildingId}/forecasts/run`, {
+    method: "POST",
+  });
+  if (res.ok) {
+    return { ok: true, data: (await res.json()) as ForecastRunResponse };
+  }
+  if (res.status === 400) {
+    const body = await res.json();
+    const missingInputs = (body?.detail?.missingInputs as string[]) ?? [];
+    return { ok: false, missingInputs };
+  }
+  return {
+    ok: false,
+    missingInputs: [],
+    message: `Unexpected error (${res.status})`,
+  };
+}
+
+export async function getLatestForecasts(buildingId: number): Promise<ZoneForecast[]> {
+  const res = await fetch(`/api/buildings/${buildingId}/forecasts/latest`);
+  if (!res.ok) return [];
+  return (await res.json()) as ZoneForecast[];
 }

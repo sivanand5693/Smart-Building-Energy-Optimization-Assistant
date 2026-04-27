@@ -20,3 +20,11 @@ class OccupancyRepository:
         self.db.add_all(rows)
         self.db.commit()
         return len(rows)
+
+    def latest_for_zone(self, zone_id: int) -> OccupancyRecordModel | None:
+        return (
+            self.db.query(OccupancyRecordModel)
+            .filter(OccupancyRecordModel.zone_id == zone_id)
+            .order_by(OccupancyRecordModel.timestamp.desc())
+            .first()
+        )

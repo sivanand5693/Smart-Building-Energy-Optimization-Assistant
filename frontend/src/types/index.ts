@@ -49,3 +49,18 @@ export interface ImportErrorItem {
   field: string | null;
   message: string;
 }
+
+export interface ZoneForecast {
+  zone_id: number;
+  zone_name: string;
+  timestamp: string;
+  predicted_kwh: string;
+  model_version: string;
+}
+
+export interface ForecastRunResponse {
+  building_id: number;
+  run_timestamp: string;
+  elapsed_ms: number;
+  forecasts: ZoneForecast[];
+}
