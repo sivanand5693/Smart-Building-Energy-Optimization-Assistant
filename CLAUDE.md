@@ -64,3 +64,4 @@ React UI → FastAPI routes → Services → Repositories → PostgreSQL
 - Never change a `.feature` file to make a test pass — fix the implementation
 - Always use test doubles in `tests/acceptance/support/test_doubles/` during acceptance runs, never real adapters
 - Repositories own all SQL — services call repositories only
+- Each UC tracks its test status in `docs/UCN/acceptance_status.md` — update after every acceptance run

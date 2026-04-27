@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Use Case List",
+  "description": "Track use case implementation state for agent-driven development",
+  "type": "object",
+  "properties": {
+    "project": { "type": "string" },
+    "description": { "type": "string" },
+    "usecases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Use case identifier (e.g., UC1)",
+            "pattern": "^UC\\d{1,2}$"
+          },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["not-started", "in-progress", "blocked", "pass", "fail"]
+          },
+          "evidence": {
+            "type": "string",
+            "description": "Verification evidence when status is 'pass'"
+          },
+          "testedAt": {
+            "type": "string",
+            "description": "ISO date when status was last verified (YYYY-MM-DD)"
+          }
+        },
+        "required": ["id", "name", "description", "status"]
+      }
+    }
+  },
+  "required": ["project", "usecases"]
+}

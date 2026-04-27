@@ -1,0 +1,72 @@
+{
+  "project": "Smart Building Energy Optimization Assistant",
+  "description": "Web application that helps facility managers optimize building energy use across zones via forecasting, recommendations, and automated controls. Implemented one use case at a time using the 4-template T1-T4 prompt pipeline.",
+  "usecases": [
+    {
+      "id": "UC1",
+      "name": "RegisterBuildingProfile",
+      "description": "Facility manager registers a building with zones, devices, and operating schedules.",
+      "status": "pass",
+      "evidence": "5/5 scenarios pass via Behave; 1 T4 cycle resolved (Pydantic 422 vs service 400 mismatch). See docs/UC1/acceptance_status.md.",
+      "testedAt": "2026-04-19"
+    },
+    {
+      "id": "UC2",
+      "name": "ImportOccupancySchedule",
+      "description": "Facility manager imports an occupancy schedule via CSV upload with row-level validation and atomic save.",
+      "status": "pass",
+      "evidence": "7/7 scenarios pass via Behave on first run; no T4 needed. See docs/UC2/acceptance_status.md.",
+      "testedAt": "2026-04-19"
+    },
+    {
+      "id": "UC3",
+      "name": "ForecastZoneDemand",
+      "description": "Scheduler-triggered forecast of zone-level energy demand using historical occupancy and weather data via a scikit-learn model.",
+      "status": "pass",
+      "evidence": "7/7 scenarios pass via Behave on first run; no T4 needed. Regression 19/19 across UC1+UC2+UC3. See docs/UC3/acceptance_status.md.",
+      "testedAt": "2026-04-27"
+    },
+    {
+      "id": "UC4",
+      "name": "RecommendHVACSetpointChanges",
+      "description": "Facility manager receives HVAC setpoint change recommendations derived from current forecasts and comfort constraints.",
+      "status": "not-started"
+    },
+    {
+      "id": "UC5",
+      "name": "ApplyApprovedEnergyPlan",
+      "description": "Facility manager applies an approved energy plan, dispatching setpoint changes to zone controllers.",
+      "status": "not-started"
+    },
+    {
+      "id": "UC6",
+      "name": "AdaptPlanToOccupancyChange",
+      "description": "Occupancy data service triggers an adaptive update to the active energy plan when zone occupancy deviates from forecast.",
+      "status": "not-started"
+    },
+    {
+      "id": "UC7",
+      "name": "DetectComfortViolationRisk",
+      "description": "Scheduler detects upcoming comfort violation risk for a zone and surfaces a warning to the facility manager.",
+      "status": "not-started"
+    },
+    {
+      "id": "UC8",
+      "name": "ExplainRecommendation",
+      "description": "Facility manager requests an explanation for a specific recommendation, returned via the Claude API adapter.",
+      "status": "not-started"
+    },
+    {
+      "id": "UC9",
+      "name": "GenerateDailySavingsReport",
+      "description": "Facility manager generates a daily energy savings report comparing actual vs baseline consumption.",
+      "status": "not-started"
+    },
+    {
+      "id": "UC10",
+      "name": "HandleSensorDataOutage",
+      "description": "Monitoring service handles sensor data outages by flagging affected zones and falling back to last-known good state.",
+      "status": "not-started"
+    }
+  ]
+}
