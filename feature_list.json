@@ -7,24 +7,24 @@
       "name": "RegisterBuildingProfile",
       "description": "Facility manager registers a building with zones, devices, and operating schedules.",
       "status": "pass",
-      "evidence": "5/5 scenarios pass via Behave; 1 T4 cycle resolved (Pydantic 422 vs service 400 mismatch). See docs/UC1/acceptance_status.md.",
-      "testedAt": "2026-04-19"
+      "evidence": "17/17 scenarios pass via Behave; 3 T4 cycles resolved (Pydantic 422 vs service 400; duplicate zone-name validation; drop unique constraint on buildings.name). Regression 40/40 across UC1+UC2+UC3 (post UC2 expansion, 2026-05-11). See docs/UC1/acceptance_status.md.",
+      "testedAt": "2026-05-11"
     },
     {
       "id": "UC2",
       "name": "ImportOccupancySchedule",
       "description": "Facility manager imports an occupancy schedule via CSV upload with row-level validation and atomic save.",
       "status": "pass",
-      "evidence": "7/7 scenarios pass via Behave on first run; no T4 needed. See docs/UC2/acceptance_status.md.",
-      "testedAt": "2026-04-19"
+      "evidence": "16/16 scenarios pass via Behave (suite expanded with S08-S16 on 2026-05-11; no T4 needed). Regression 40/40 across UC1+UC2+UC3. See docs/UC2/acceptance_status.md.",
+      "testedAt": "2026-05-11"
     },
     {
       "id": "UC3",
       "name": "ForecastZoneDemand",
       "description": "Scheduler-triggered forecast of zone-level energy demand using historical occupancy and weather data via a scikit-learn model.",
       "status": "pass",
-      "evidence": "7/7 scenarios pass via Behave on first run; no T4 needed. Regression 19/19 across UC1+UC2+UC3. See docs/UC3/acceptance_status.md.",
-      "testedAt": "2026-04-27"
+      "evidence": "7/7 scenarios pass via Behave on first run; no T4 needed. Regression 40/40 across UC1+UC2+UC3 (post UC2 expansion, 2026-05-11). See docs/UC3/acceptance_status.md.",
+      "testedAt": "2026-05-11"
     },
     {
       "id": "UC4",

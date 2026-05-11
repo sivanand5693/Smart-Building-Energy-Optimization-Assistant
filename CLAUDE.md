@@ -31,6 +31,11 @@ PYTHONPATH="./backend" pytest tests/unit/test_building_service.py  # single file
 cd frontend && npm run dev          # Vite dev server on :5173
 ```
 
+**Per-UC browser routes** (Vite dev server at `http://localhost:5173`):
+- UC1 RegisterBuildingProfile → `/register-building`
+- UC2 ImportOccupancySchedule → `/import-occupancy`
+- UC3 ForecastZoneDemand → `/forecasts`
+
 ### Database
 ```bash
 createdb smart_building_dev
@@ -39,6 +44,8 @@ cd backend
 alembic upgrade head                 # dev DB
 TESTING=1 alembic upgrade head       # test DB
 ```
+
+**DB viewer (VS Code):** Install the **SQLTools** extension + **SQLTools PostgreSQL/Cockroach Driver** (`mtxr.sqltools-driver-pg`). Add a connection to `smart_building_dev` — Server `localhost`, Port `5432`, Database `smart_building_dev`, Username `sivanand` (macOS user), no password (local trust auth). Six demo-relevant tables: `buildings`, `zones`, `devices`, `operating_schedules`, `occupancy_records`, `demand_forecasts`. `alembic_version` is the migration tracker — ignore for demos. Right-click a table → **Show Table Records** → pin tabs; click refresh after each UI action.
 
 ### Acceptance Tests
 Behave auto-starts the backend in `TESTING=1` mode on port 8000 against `smart_building_test`. Vite must be running in another terminal for UI scenarios.

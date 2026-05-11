@@ -52,6 +52,18 @@
 | System confirms | Confirmation visible with building ID |
 | Save within 4s | `saveTimeMs < 4000` |
 | Specific field errors | Each error message names the exact field |
+| Multiple zones per building | Each zone persists with its own deviceType |
+| Multiple schedules per building | Each schedule row persists independently |
+| Missing deviceType | Field-level error names `deviceType` |
+| Missing schedule | Field-level error names `operatingSchedule` |
+| Duplicate zone names in one building | Field-level error names `zones` |
+| Long building name (100 chars) | Name persisted without truncation |
+| Multiple invalid fields on one submit | All offending fields reported in the same response |
+| Form state after validation failure | Entered values remain visible to user |
+| Duplicate building names across submissions | Both persisted with distinct IDs |
+| Whitespace-only building name | Treated as missing; field-level error names `buildingName` |
+| Equal start/end schedule times | Field-level error names `operatingSchedule` |
+| Confirmation ID consistency | Returned building ID equals the persisted record's ID |
 
 ---
 
@@ -64,3 +76,15 @@
 - **Confirmation oracle:** Success message with building ID visible
 - **Performance oracle:** `saveTimeMs < 4000`
 - **Integrity oracle:** No DB writes occur on validation failure
+- **Multi-zone oracle (S06):** Repository returns N zones for the building, each with the deviceType originally submitted
+- **Multi-schedule oracle (S07):** Repository returns N schedule entries for the building, all present
+- **Missing-device oracle (S08):** Validation response identifies `deviceType` as the offending field
+- **Missing-schedule oracle (S09):** Validation response identifies `operatingSchedule` as the offending field
+- **Duplicate-zone oracle (S10):** Validation response identifies `zones` and no record is saved
+- **Long-name oracle (S11):** Saved `buildingName` length equals 100; characters preserved byte-for-byte
+- **Multi-error oracle (S12):** Single submit response lists `buildingName`, `zones`, and `operatingSchedule` errors simultaneously
+- **State-preservation oracle (S13):** After failed submit, UI inputs still reflect the previously entered values
+- **Duplicate-building-name oracle (S14):** Two persisted records share the name and have distinct primary-key IDs
+- **Whitespace-name oracle (S15):** Validation response identifies `buildingName` when input is only spaces
+- **Equal-time oracle (S16):** Validation response identifies `operatingSchedule` when `startTime == endTime`
+- **ID-consistency oracle (S17):** ID returned in the confirmation UI equals the ID stored in the repository for that building

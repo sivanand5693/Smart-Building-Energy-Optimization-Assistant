@@ -177,3 +177,129 @@ def step_save_time_under(context, limit_ms):
     assert elapsed < limit_ms, (
         f"save time {elapsed:.0f}ms exceeded limit {limit_ms}ms"
     )
+
+
+# -- Expanded scenarios (S06–S17) -------------------------------------------
+
+@when('I add zone "{zone_name}" with no device type')
+def step_add_zone_no_device_type(context, zone_name):
+    context.page.fill('[data-testid="zone-name-input"]', zone_name)
+    context.page.select_option('[data-testid="device-type-input"]', "")
+    context.page.click('[data-testid="add-zone-button"]')
+
+
+@when("I add no operating schedule")
+def step_add_no_schedule(context):
+    pass
+
+
+@when("I enter a building name of length {length:d}")
+def step_enter_name_of_length(context, length):
+    name = "B" * length
+    context.long_building_name = name
+    context.page.fill('[data-testid="building-name-input"]', name)
+
+
+@then("the saved building has {n:d} zones")
+def step_saved_building_has_n_zones(context, n):
+    engine = create_engine(settings.test_database_url, future=True)
+    with engine.connect() as conn:
+        count = conn.execute(
+            text("SELECT COUNT(*) FROM zones WHERE building_id = :b"),
+            {"b": context.saved_building_id},
+        ).scalar()
+    engine.dispose()
+    assert count == n, f"expected {n} zones; found {count}"
+
+
+@then('the saved zone "{zone_name}" has device type "{device_type}"')
+def step_saved_named_zone_has_device(context, zone_name, device_type):
+    engine = create_engine(settings.test_database_url, future=True)
+    with engine.connect() as conn:
+        row = conn.execute(
+            text(
+                "SELECT d.id FROM devices d "
+                "JOIN zones z ON z.id = d.zone_id "
+                "WHERE z.building_id = :b AND z.name = :n "
+                "AND d.device_type = :t"
+            ),
+            {
+                "b": context.saved_building_id,
+                "n": zone_name,
+                "t": device_type,
+            },
+        ).first()
+    engine.dispose()
+    assert row is not None, (
+        f"device {device_type!r} not found for zone {zone_name!r}"
+    )
+
+
+@then("the saved building name has length {length:d}")
+def step_saved_building_name_length(context, length):
+    name = getattr(context, "long_building_name", None)
+    assert name is not None, "no long building name recorded"
+    assert len(name) == length, (
+        f"recorded name length {len(name)} != expected {length}"
+    )
+    engine = create_engine(settings.test_database_url, future=True)
+    with engine.connect() as conn:
+        row = conn.execute(
+            text("SELECT name FROM buildings WHERE name = :n"),
+            {"n": name},
+        ).first()
+    engine.dispose()
+    assert row is not None, "building with long name not found in DB"
+    assert len(row[0]) == length, (
+        f"DB name length {len(row[0])} != expected {length}"
+    )
+
+
+@then('the building name field still shows "{name}"')
+def step_name_field_preserved(context, name):
+    value = context.page.input_value('[data-testid="building-name-input"]')
+    assert value == name, f"building name field shows {value!r}, expected {name!r}"
+
+
+@then('the zones list still contains "{zone_name}"')
+def step_zones_list_contains(context, zone_name):
+    items = context.page.locator('[data-testid="zone-item"]').all_inner_texts()
+    assert any(zone_name in t for t in items), (
+        f"zones list does not contain {zone_name!r}; got {items!r}"
+    )
+
+
+@then('the Building Repository contains {n:d} buildings named "{name}"')
+def step_repo_contains_n_named(context, n, name):
+    engine = create_engine(settings.test_database_url, future=True)
+    with engine.connect() as conn:
+        rows = conn.execute(
+            text("SELECT id FROM buildings WHERE name = :n ORDER BY id"),
+            {"n": name},
+        ).fetchall()
+    engine.dispose()
+    assert len(rows) == n, f"expected {n} buildings named {name!r}; found {len(rows)}"
+    context.saved_building_ids = [r[0] for r in rows]
+
+
+@then("the two saved buildings have distinct IDs")
+def step_two_distinct_ids(context):
+    ids = getattr(context, "saved_building_ids", [])
+    assert len(ids) == 2, f"expected 2 building IDs in context, got {ids!r}"
+    assert ids[0] != ids[1], f"building IDs are not distinct: {ids!r}"
+
+
+@then('the displayed building ID matches the ID of the saved building "{name}"')
+def step_displayed_id_matches(context, name):
+    displayed = context.page.locator('[data-testid="building-id"]').inner_text().strip()
+    engine = create_engine(settings.test_database_url, future=True)
+    with engine.connect() as conn:
+        row = conn.execute(
+            text("SELECT id FROM buildings WHERE name = :n"),
+            {"n": name},
+        ).first()
+    engine.dispose()
+    assert row is not None, f"building {name!r} not found"
+    assert displayed == str(row[0]), (
+        f"displayed ID {displayed!r} does not match DB ID {row[0]!r}"
+    )

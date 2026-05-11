@@ -1,3 +1,4 @@
+import re
 import time
 from datetime import datetime, timedelta
 
@@ -26,6 +27,26 @@ def step_seed_building(context, building_name, zone_a, zone_b):
         context.building_id = building.id
         context.building_name = building.name
         context.zones = {z.name: z.id for z in building.zones}
+    engine.dispose()
+
+
+@given('a second building "{building_name}" exists with zone "{zone_name}"')
+def step_seed_second_building(context, building_name, zone_name):
+    engine = create_engine(settings.test_database_url, future=True)
+    with Session(engine) as db:
+        building = BuildingModel(name=building_name)
+        zone = ZoneModel(name=zone_name)
+        zone.devices.append(DeviceModel(device_type="HVAC"))
+        building.zones.append(zone)
+        db.add(building)
+        db.commit()
+        db.refresh(building)
+        if not hasattr(context, "other_buildings"):
+            context.other_buildings = {}
+        context.other_buildings[building.name] = {
+            "id": building.id,
+            "zones": {z.name: z.id for z in building.zones},
+        }
     engine.dispose()
 
 
@@ -96,6 +117,37 @@ def step_upload_rows_table(context, building_name):
 @when("I upload raw CSV content")
 def step_upload_raw(context):
     _attach_csv(context, context.text or "")
+
+
+def _substitute_zone_tokens(context, text: str) -> str:
+    """Replace ``{ZoneName}`` tokens with the zone_id from the seeded building."""
+    def repl(m):
+        name = m.group(1)
+        if name in context.zones:
+            return str(context.zones[name])
+        return m.group(0)
+    return re.sub(r"\{([^}]+)\}", repl, text)
+
+
+@when('I upload raw CSV content for building "{building_name}" with blank lines')
+@when('I upload raw CSV content for building "{building_name}" with templated header')
+def step_upload_raw_templated(context, building_name):
+    rendered = _substitute_zone_tokens(context, context.text or "")
+    _attach_csv(context, rendered)
+
+
+@when(
+    'I upload a row referencing zone "{zone_name}" in building "{other_building}" '
+    'at "{timestamp}" with count {count:d}'
+)
+def step_upload_cross_building_row(context, zone_name, other_building, timestamp, count):
+    other = context.other_buildings[other_building]
+    zone_id_val = other["zones"][zone_name]
+    csv_content = (
+        "zone_id,timestamp,occupancy_count\n"
+        f"{zone_id_val},{timestamp},{count}\n"
+    )
+    _attach_csv(context, csv_content)
 
 
 @when("I upload an empty CSV")
@@ -178,6 +230,38 @@ def step_row_error(context, row_num, field):
     txt = context.page.locator(selector).inner_text()
     assert str(row_num) in txt, f"row {row_num} not in error text: {txt!r}"
     assert field in txt, f"field {field!r} not in error text: {txt!r}"
+
+
+@then('an import error references row {row_num:d} without naming a field')
+def step_row_error_no_field(context, row_num):
+    selector = f'[data-testid="row-error-{row_num}"]'
+    context.page.wait_for_selector(selector, timeout=5_000)
+    txt = context.page.locator(selector).inner_text()
+    assert str(row_num) in txt, f"row {row_num} not in error text: {txt!r}"
+    # UI renders "row N field <name>: <message>" only when a field is named.
+    # Absence of " field " in the prefix (before the colon) implies no field.
+    prefix = txt.split(":", 1)[0].lower()
+    assert " field " not in prefix, (
+        f"expected no field name in row {row_num} error prefix; got {prefix!r}"
+    )
+
+
+@then("an import error indicates no data rows")
+def step_no_data_rows_error(context):
+    panel = context.page.locator('[data-testid="header-error"]')
+    panel.wait_for(timeout=5_000)
+    assert panel.is_visible(), "header-error element not visible"
+    text_content = panel.inner_text().lower()
+    assert "no data rows" in text_content or "no data" in text_content, (
+        f"expected no-data-rows error; got {text_content!r}"
+    )
+
+
+@then("the submit button is disabled")
+def step_submit_disabled(context):
+    btn = context.page.locator('[data-testid="submit-import-button"]')
+    assert btn.is_visible(), "submit button not visible"
+    assert btn.is_disabled(), "expected submit button to be disabled"
 
 
 @then("an import error indicates a header issue")

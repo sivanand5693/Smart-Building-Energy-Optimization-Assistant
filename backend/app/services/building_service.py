@@ -49,9 +49,30 @@ class BuildingService:
         if not profile.zones:
             errors["zones"] = "zones must contain at least one zone"
         else:
+            seen_zone_names: set[str] = set()
             for zone in profile.zones:
-                if not zone.devices:
-                    errors["zones"] = "each zone must have at least one device"
+                normalized = (zone.name or "").strip().lower()
+                if normalized and normalized in seen_zone_names:
+                    errors["zones"] = (
+                        f"zones must have unique names within a building "
+                        f"(duplicate: {zone.name})"
+                    )
+                    break
+                if normalized:
+                    seen_zone_names.add(normalized)
+            if "zones" not in errors:
+                for zone in profile.zones:
+                    if not zone.devices:
+                        errors["zones"] = "each zone must have at least one device"
+                        break
+            for zone in profile.zones:
+                for device in zone.devices:
+                    if not device.device_type or not device.device_type.strip():
+                        errors["deviceType"] = (
+                            "deviceType is required for every device in every zone"
+                        )
+                        break
+                if "deviceType" in errors:
                     break
         if not profile.operating_schedules:
             errors["operatingSchedule"] = "operatingSchedule must contain at least one entry"

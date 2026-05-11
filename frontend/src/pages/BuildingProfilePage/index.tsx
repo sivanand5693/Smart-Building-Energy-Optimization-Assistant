@@ -26,7 +26,7 @@ export default function BuildingProfilePage() {
   const [submitting, setSubmitting] = useState(false);
 
   const [zoneNameDraft, setZoneNameDraft] = useState("");
-  const [deviceTypeDraft, setDeviceTypeDraft] = useState("HVAC");
+  const [deviceTypeDraft, setDeviceTypeDraft] = useState<string>("HVAC");
   const [scheduleDraft, setScheduleDraft] = useState<ScheduleDraft>({
     days_of_week: "Mon-Fri",
     start_time: "08:00",
@@ -123,10 +123,12 @@ export default function BuildingProfilePage() {
               onChange={(e) => setDeviceTypeDraft(e.target.value)}
               className="rounded border px-3 py-2"
             >
-              <option>HVAC</option>
-              <option>Lighting</option>
-              <option>Plug Load</option>
-              <option>Other</option>
+              <option value="">(none)</option>
+              <option value="HVAC">HVAC</option>
+              <option value="Lighting">Lighting</option>
+              <option value="Sensor">Sensor</option>
+              <option value="Plug Load">Plug Load</option>
+              <option value="Other">Other</option>
             </select>
             <button
               type="button"
@@ -140,6 +142,11 @@ export default function BuildingProfilePage() {
           {errors.zones && (
             <p data-testid="error-zones" className="mt-1 text-sm text-red-600">
               {errors.zones}
+            </p>
+          )}
+          {errors.deviceType && (
+            <p data-testid="error-deviceType" className="mt-1 text-sm text-red-600">
+              {errors.deviceType}
             </p>
           )}
         </section>

@@ -52,3 +52,12 @@ playwright-report/
 
 # TypeScript
 *.tsbuildinfo
+
+# Office / Word temp lock files
+~$*
+
+# SQLTools session scratch files
+*.session.sql
+
+# Local-only demo materials
+ref/demo_script.md

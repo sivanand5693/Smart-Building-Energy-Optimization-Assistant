@@ -58,6 +58,15 @@
 | Parsing errors identify row | Error names row number and field |
 | Import within 5s | `importTimeMs < 5000` for 1000 rows |
 | No-save on error | Zero rows written if any row invalid |
+| Zone scoping is per-building | A zone owned by another building is rejected as `zone_id` error |
+| Non-negative occupancy | Negative `occupancy_count` rejected on the offending row |
+| Strict `zone_id` typing | Non-integer `zone_id` rejected as `zone_id` error |
+| Strict column count | Rows with wrong column count rejected with a row-level error (no field) |
+| Atomic multi-error reporting | All invalid rows surfaced in one response when any row fails |
+| Robust to blank lines | Empty data rows are skipped, surrounding valid rows persist |
+| Whitespace-tolerant header | Header cells with leading/trailing spaces still match `EXPECTED_HEADER` |
+| Submit gated by inputs | Submit button disabled until building selected AND file attached |
+| Reject empty data | Header-only files rejected with a "no data rows" error |
 
 ---
 
@@ -72,3 +81,12 @@
 - **Confirmation oracle:** Success panel with numeric record count
 - **Performance oracle:** `importTimeMs < 5000` for 1000-row import
 - **Integrity oracle:** No rows written when any validation fails
+- **Cross-building zone oracle:** A `zone_id` valid in another building is rejected with field `zone_id` for the selected building (S08)
+- **Negative-count oracle:** `occupancy_count < 0` surfaces a row-level error with field `occupancy_count` (S09)
+- **Non-integer zone_id oracle:** A non-numeric `zone_id` surfaces a row-level error with field `zone_id` (S10)
+- **Column-count oracle:** A row with more/fewer than three columns surfaces a row-level error with no `field` (S11)
+- **Multi-error oracle:** All offending rows are returned in a single response; none are persisted (S12)
+- **Blank-line oracle:** All-empty CSV rows between data rows are silently skipped (S13)
+- **Header-whitespace oracle:** Header cells like `"zone_id "` or `" timestamp"` are normalized via strip before matching `EXPECTED_HEADER` (S14)
+- **Submit-gating oracle:** The submit button is disabled when either building or file is unset (S15)
+- **Header-only oracle:** A file containing only the header row is rejected with a "no data rows" file-level error (S16)
