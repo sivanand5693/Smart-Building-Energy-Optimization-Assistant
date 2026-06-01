@@ -12,6 +12,18 @@ class DemandForecastRepository:
         self.db.add_all(rows)
         self.db.commit()
 
+    def latest_for_zone(self, zone_id: int) -> DemandForecastModel | None:
+        return (
+            self.db.execute(
+                select(DemandForecastModel)
+                .where(DemandForecastModel.zone_id == zone_id)
+                .order_by(DemandForecastModel.timestamp.desc())
+                .limit(1)
+            )
+            .scalars()
+            .first()
+        )
+
     def latest_for_building(self, building_id: int) -> list[DemandForecastModel]:
         zone_ids = [
             z.id

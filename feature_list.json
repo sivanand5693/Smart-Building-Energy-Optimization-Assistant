@@ -30,7 +30,9 @@
       "id": "UC4",
       "name": "RecommendHVACSetpointChanges",
       "description": "Facility manager receives HVAC setpoint change recommendations derived from current forecasts and comfort constraints.",
-      "status": "not-started"
+      "status": "pass",
+      "evidence": "17/17 scenarios pass via Behave on first run; no T4 needed. Regression 67/67 across UC1+UC2+UC3+UC4. See docs/UC4/acceptance_status.md.",
+      "testedAt": "2026-06-01"
     },
     {
       "id": "UC5",

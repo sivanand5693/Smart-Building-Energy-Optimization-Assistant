@@ -64,3 +64,22 @@ export interface ForecastRunResponse {
   elapsed_ms: number;
   forecasts: ZoneForecast[];
 }
+
+export interface SetpointRecommendation {
+  building_id: number;
+  zone_id: number;
+  zone_name: string;
+  run_timestamp: string;
+  setpoint_delta_f: string;
+  projected_savings_kwh: string;
+  comfort_impact: string;
+  rank: number;
+  model_version: string;
+}
+
+export interface RecommendationRunResponse {
+  building_id: number;
+  run_timestamp: string;
+  elapsed_ms: number;
+  recommendations: SetpointRecommendation[];
+}

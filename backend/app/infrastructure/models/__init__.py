@@ -4,6 +4,12 @@ from app.infrastructure.models.device_model import DeviceModel
 from app.infrastructure.models.operating_schedule_model import OperatingScheduleModel
 from app.infrastructure.models.occupancy_model import OccupancyRecordModel
 from app.infrastructure.models.forecast_model import DemandForecastModel
+from app.infrastructure.models.zone_comfort_constraint_model import (
+    ZoneComfortConstraintModel,
+)
+from app.infrastructure.models.setpoint_recommendation_model import (
+    SetpointRecommendationModel,
+)
 
 __all__ = [
     "BuildingModel",
@@ -12,4 +18,6 @@ __all__ = [
     "OperatingScheduleModel",
     "OccupancyRecordModel",
     "DemandForecastModel",
+    "ZoneComfortConstraintModel",
+    "SetpointRecommendationModel",
 ]

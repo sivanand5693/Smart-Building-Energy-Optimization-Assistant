@@ -3,8 +3,11 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import building, forecasting
+from app.api.routes import building, forecasting, recommendations
 from app.infrastructure.adapters.forecast_adapters import use_test_doubles
+from app.infrastructure.adapters.optimization_adapter import (
+    use_test_doubles as use_optimization_test_doubles,
+)
 
 app = FastAPI(title="Smart Building Energy Optimization Assistant")
 
@@ -18,10 +21,12 @@ app.add_middleware(
 
 app.include_router(building.router)
 app.include_router(forecasting.router)
+app.include_router(recommendations.router)
 
 
 if os.environ.get("TESTING") == "1":
     use_test_doubles()
+    use_optimization_test_doubles()
     from app.api.routes import test_support  # noqa: WPS433
 
     app.include_router(test_support.router)

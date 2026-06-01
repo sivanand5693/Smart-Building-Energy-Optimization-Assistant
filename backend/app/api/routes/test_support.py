@@ -1,4 +1,5 @@
 """Test-only control endpoints. Mounted only when TESTING=1."""
+from decimal import Decimal
 from typing import Optional
 
 from fastapi import APIRouter, Depends
@@ -12,6 +13,14 @@ from app.infrastructure.adapters.forecast_adapters import (
     ForecastModelDouble,
     WeatherAdapterDouble,
     registry,
+)
+from app.infrastructure.adapters.optimization_adapter import (
+    OptimizationAdapterDouble,
+    registry as opt_registry,
+)
+from app.infrastructure.models import ZoneComfortConstraintModel
+from app.infrastructure.repositories.recommendation_repository import (
+    ZoneComfortConstraintRepository,
 )
 
 
@@ -82,4 +91,97 @@ def clear_occupancy_for_zone(
         {"z": body.zone_id},
     )
     db.commit()
+    return {"ok": True}
+
+
+# -- UC4 test-support --------------------------------------------------------
+
+class SeedConstraintsPayload(BaseModel):
+    zone_id: int
+    min_setpoint_f: Optional[float] = 65.0
+    max_setpoint_f: Optional[float] = 78.0
+    occupied_min_f: Optional[float] = 68.0
+    occupied_max_f: Optional[float] = 75.0
+    unoccupied_min_f: Optional[float] = 65.0
+    unoccupied_max_f: Optional[float] = 78.0
+
+
+class ZoneOnlyPayload(BaseModel):
+    zone_id: int
+
+
+class ForceStalePayload(BaseModel):
+    zone_id: int
+    hours_old: int
+
+
+@router.post("/comfort_constraints/seed")
+def seed_constraints(
+    body: SeedConstraintsPayload,
+    db: Session = Depends(get_db),
+) -> dict:
+    repo = ZoneComfortConstraintRepository(db)
+    repo.upsert(
+        ZoneComfortConstraintModel(
+            zone_id=body.zone_id,
+            min_setpoint_f=Decimal(str(body.min_setpoint_f)),
+            max_setpoint_f=Decimal(str(body.max_setpoint_f)),
+            occupied_min_f=Decimal(str(body.occupied_min_f)),
+            occupied_max_f=Decimal(str(body.occupied_max_f)),
+            unoccupied_min_f=Decimal(str(body.unoccupied_min_f)),
+            unoccupied_max_f=Decimal(str(body.unoccupied_max_f)),
+        )
+    )
+    return {"ok": True}
+
+
+@router.post("/comfort_constraints/clear")
+def clear_constraints(
+    body: ZoneOnlyPayload,
+    db: Session = Depends(get_db),
+) -> dict:
+    ZoneComfortConstraintRepository(db).delete(body.zone_id)
+    return {"ok": True}
+
+
+@router.post("/forecasts/force_stale")
+def force_stale_forecast(
+    body: ForceStalePayload,
+    db: Session = Depends(get_db),
+) -> dict:
+    db.execute(
+        text(
+            "UPDATE demand_forecasts SET timestamp = NOW() - (:h || ' hours')::interval "
+            "WHERE zone_id = :z"
+        ),
+        {"h": body.hours_old, "z": body.zone_id},
+    )
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/forecasts/clear_for_zone")
+def clear_forecasts_for_zone(
+    body: ZoneOnlyPayload,
+    db: Session = Depends(get_db),
+) -> dict:
+    db.execute(
+        text("DELETE FROM demand_forecasts WHERE zone_id = :z"),
+        {"z": body.zone_id},
+    )
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/optimization_double/force_infeasible")
+def force_infeasible(body: ZoneOnlyPayload) -> dict:
+    assert isinstance(opt_registry.optimization, OptimizationAdapterDouble)
+    opt_registry.optimization.force_infeasible(body.zone_id)
+    return {"ok": True}
+
+
+@router.post("/optimization_double/reset")
+def reset_optimization_double() -> dict:
+    if isinstance(opt_registry.optimization, OptimizationAdapterDouble):
+        opt_registry.optimization.reset()
     return {"ok": True}

@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import BuildingProfilePage from "./pages/BuildingProfilePage";
 import OccupancySchedulePage from "./pages/OccupancySchedulePage";
 import ForecastsPage from "./pages/ForecastPage";
+import RecommendationsPage from "./pages/RecommendationsPage";
 
 export default function App() {
   return (
@@ -10,6 +11,7 @@ export default function App() {
       <Route path="/register-building" element={<BuildingProfilePage />} />
       <Route path="/import-occupancy" element={<OccupancySchedulePage />} />
       <Route path="/forecasts" element={<ForecastsPage />} />
+      <Route path="/recommendations" element={<RecommendationsPage />} />
     </Routes>
   );
 }

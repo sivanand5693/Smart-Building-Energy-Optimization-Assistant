@@ -5,6 +5,8 @@ import type {
   ForecastRunResponse,
   ImportErrorItem,
   ImportResult,
+  RecommendationRunResponse,
+  SetpointRecommendation,
   ZoneForecast,
 } from "../types";
 
@@ -103,4 +105,37 @@ export async function getLatestForecasts(buildingId: number): Promise<ZoneForeca
   const res = await fetch(`/api/buildings/${buildingId}/forecasts/latest`);
   if (!res.ok) return [];
   return (await res.json()) as ZoneForecast[];
+}
+
+export type RunRecommendationsResult =
+  | { ok: true; data: RecommendationRunResponse }
+  | { ok: false; missingInputs: string[]; message?: string };
+
+export async function runRecommendations(
+  buildingId: number,
+): Promise<RunRecommendationsResult> {
+  const res = await fetch(`/api/buildings/${buildingId}/recommendations/run`, {
+    method: "POST",
+  });
+  if (res.ok) {
+    return { ok: true, data: (await res.json()) as RecommendationRunResponse };
+  }
+  if (res.status === 400) {
+    const body = await res.json();
+    const missingInputs = (body?.detail?.missingInputs as string[]) ?? [];
+    return { ok: false, missingInputs };
+  }
+  return {
+    ok: false,
+    missingInputs: [],
+    message: `Unexpected error (${res.status})`,
+  };
+}
+
+export async function getLatestRecommendations(
+  buildingId: number,
+): Promise<SetpointRecommendation[]> {
+  const res = await fetch(`/api/buildings/${buildingId}/recommendations/latest`);
+  if (!res.ok) return [];
+  return (await res.json()) as SetpointRecommendation[];
 }
