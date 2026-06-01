@@ -53,24 +53,40 @@
 
 ## B) Acceptance Checks Table
 
-| Use-case statement | Acceptance check |
-|---|---|
-| Scheduler triggers forecast | `POST /api/buildings/{id}/forecasts/run` returns 200 with structured run result |
-| System gathers occupancy data | Service queries latest occupancy per zone before invoking model |
-| System gathers weather data | Service calls WeatherAdapter before invoking model |
-| System gathers device-state data | Service calls DeviceStateAdapter before invoking model |
-| System runs forecasting model per zone | Model adapter invoked once per zone in the building |
-| System stores forecasts with timestamps + zone IDs | One `demand_forecast` row per zone, each with non-null `timestamp` and `zone_id` |
-| Forecasts available to Optimization Service | `GET /api/buildings/{id}/forecasts/latest` returns the run's per-zone forecasts |
-| Missing input data is reported | When any required input is missing, response is 400 with structured error and no rows are persisted |
-| Performance budget | Run for ≤10 zones completes in < 6000 ms |
-| Structured fields | Each forecast row exposes `timestamp` and `zone_id` as queryable columns |
+| Use-case statement | Acceptance check | Covered by |
+|---|---|---|
+| Scheduler triggers forecast | `POST /api/buildings/{id}/forecasts/run` returns 200 with structured run result | S01, S08, S09 |
+| System gathers occupancy data | Service queries latest occupancy per zone before invoking model | S01, S02, S14 |
+| System gathers weather data | Service calls WeatherAdapter before invoking model | S01, S03 |
+| System gathers device-state data | Service calls DeviceStateAdapter before invoking model | S01, S04 |
+| System runs forecasting model per zone | Model adapter invoked once per zone in the building | S01, S08, S09 |
+| System stores forecasts with timestamps + zone IDs | One `demand_forecast` row per zone, each with non-null `timestamp` and `zone_id` | S01, S05 |
+| Forecasts available to Optimization Service | `GET /api/buildings/{id}/forecasts/latest` returns the run's per-zone forecasts | S01, S08, S09 |
+| Missing input data is reported | When any required input is missing, response is 400 with structured error and no rows are persisted | S02, S03, S04, S12, S13, S14, S15 |
+| Performance budget | Run for ≤10 zones completes in < 6000 ms | S06 |
+| Structured fields | Each forecast row exposes `timestamp` and `zone_id` as queryable columns | S05 |
+| Atomicity on failure (prior runs preserved) | Failed run does not delete or modify previously persisted rows | S07 |
+| Single-zone building | A 1-zone building produces exactly 1 forecast row | S08 |
+| Multi-zone building (larger) | A 6-zone building produces 6 forecast rows, each with a distinct zone_id and predicted_kwh | S09 |
+| Determinism | Two consecutive runs with identical inputs produce identical predicted_kwh per zone | S10 |
+| Cross-building isolation | A forecast run on building A does not modify rows of sibling building B | S11 |
+| Empty building (no zones) | Response is 400 with `missingInputs: ["zones"]`, 0 rows persisted | S12 |
+| Unknown building id | Response is 400 with `missingInputs: ["building"]` | S13 |
+| Multiple zones missing the same input | A single category appears once in `missingInputs`; 0 rows persisted | S14 |
+| Multiple input categories missing | First-encountered missing category is reported; 0 rows persisted | S15 |
+| UI error gating after failed run | ForecastsPage shows an error banner naming the missing input and renders no forecast rows | S16 |
+| `model_version` audit field | Every persisted row exposes a non-empty `model_version` string | S17 |
 
 ## C) Acceptance Oracles
 
-- **UI oracle:** ForecastsPage lists per-zone rows with `zone_name`, `predicted_kwh`, and `timestamp` after a successful run.
+- **UI happy-path oracle:** ForecastsPage lists per-zone rows with `zone_name`, `predicted_kwh`, and `timestamp` after a successful run.
+- **UI error oracle:** On a failed UI-initiated run, `[data-testid="forecast-run-error"]` is rendered, `[data-testid="forecast-missing-inputs"]` contains the missing-input label, and no `[data-testid^="forecast-row-"]` elements are present.
 - **Persistence oracle:** `demand_forecast` table contains exactly one row per zone for the latest run.
 - **Atomicity oracle:** On failure, `demand_forecast` row count for the building is unchanged from before the run.
+- **Cross-building isolation oracle:** A forecast run on building A leaves building B's `demand_forecast` row count and contents unchanged.
 - **Field-structure oracle:** Each forecast row has a non-null `timestamp` and a `zone_id` referencing an existing zone.
+- **Determinism oracle:** For a fixed `(building, occupancy, weather, device_state)` tuple, two consecutive runs return identical `predicted_kwh` per zone.
+- **Uniqueness oracle (multi-zone happy path):** Within a single run result, `zone_id` values are pairwise distinct and `predicted_kwh` values are pairwise distinct (under the deterministic double's `zone_id`-dependent formula).
 - **Performance oracle:** Run wall-clock time recorded by the harness is < 6000 ms.
-- **Error oracle:** On missing input, response body includes a `missingInputs` array naming which adapters/datasets were unavailable.
+- **Error oracle:** On missing input, response body includes a `missingInputs` array naming which adapters/datasets were unavailable (`occupancy` | `weather` | `device_state` | `zones` | `building`).
+- **Model-version oracle:** Every persisted `demand_forecast` row carries a non-empty `model_version` string for retrospective audit.
