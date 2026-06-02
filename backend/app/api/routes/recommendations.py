@@ -15,6 +15,7 @@ router = APIRouter(prefix="/api/buildings", tags=["recommendations"])
 
 class RecommendationOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+    id: int | None = None
     building_id: int
     zone_id: int
     zone_name: str

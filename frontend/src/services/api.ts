@@ -1,4 +1,6 @@
 import type {
+  AppliedChange,
+  ApplyPlanResponse,
   BuildingProfileInput,
   BuildingProfileResult,
   BuildingSummary,
@@ -138,4 +140,41 @@ export async function getLatestRecommendations(
   const res = await fetch(`/api/buildings/${buildingId}/recommendations/latest`);
   if (!res.ok) return [];
   return (await res.json()) as SetpointRecommendation[];
+}
+
+export type ApplyPlanResult =
+  | { ok: true; data: ApplyPlanResponse }
+  | { ok: false; missingInputs: string[]; status: number; message?: string };
+
+export async function applyPlan(
+  buildingId: number,
+  recommendationIds: number[],
+): Promise<ApplyPlanResult> {
+  const res = await fetch(`/api/buildings/${buildingId}/plans/apply`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ recommendation_ids: recommendationIds }),
+  });
+  if (res.ok) {
+    return { ok: true, data: (await res.json()) as ApplyPlanResponse };
+  }
+  if (res.status === 400) {
+    const body = await res.json().catch(() => ({}));
+    const missingInputs = (body?.detail?.missingInputs as string[]) ?? [];
+    return { ok: false, missingInputs, status: 400 };
+  }
+  return {
+    ok: false,
+    missingInputs: [],
+    status: res.status,
+    message: `Server error (${res.status})`,
+  };
+}
+
+export async function getLatestPlan(
+  buildingId: number,
+): Promise<AppliedChange[]> {
+  const res = await fetch(`/api/buildings/${buildingId}/plans/latest`);
+  if (!res.ok) return [];
+  return (await res.json()) as AppliedChange[];
 }

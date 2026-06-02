@@ -38,7 +38,9 @@
       "id": "UC5",
       "name": "ApplyApprovedEnergyPlan",
       "description": "Facility manager applies an approved energy plan, dispatching setpoint changes to zone controllers.",
-      "status": "not-started"
+      "status": "pass",
+      "evidence": "17/17 scenarios pass via Behave; no T4 cycle required (only step-decorator ordering tweak during T3). Regression 84/84 across UC1+UC2+UC3+UC4+UC5. See docs/UC5/acceptance_status.md.",
+      "testedAt": "2026-06-01"
     },
     {
       "id": "UC6",

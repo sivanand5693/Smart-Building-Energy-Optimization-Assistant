@@ -66,6 +66,7 @@ export interface ForecastRunResponse {
 }
 
 export interface SetpointRecommendation {
+  id?: number;
   building_id: number;
   zone_id: number;
   zone_name: string;
@@ -82,4 +83,23 @@ export interface RecommendationRunResponse {
   run_timestamp: string;
   elapsed_ms: number;
   recommendations: SetpointRecommendation[];
+}
+
+export interface AppliedChange {
+  recommendation_id: number;
+  building_id: number;
+  zone_id: number;
+  applied_at: string;
+  setpoint_delta_f: string;
+  status: string;
+  error_code: string | null;
+  adapter_message: string;
+  latency_ms: number;
+}
+
+export interface ApplyPlanResponse {
+  building_id: number;
+  applied_at: string;
+  elapsed_ms: number;
+  results: AppliedChange[];
 }

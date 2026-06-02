@@ -36,6 +36,7 @@ cd frontend && npm run dev          # Vite dev server on :5173
 - UC2 ImportOccupancySchedule → `/import-occupancy`
 - UC3 ForecastZoneDemand → `/forecasts`
 - UC4 RecommendHVACSetpointChanges → `/recommendations`
+- UC5 ApplyApprovedEnergyPlan → `/apply-plan`
 
 ### Database
 ```bash

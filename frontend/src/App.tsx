@@ -3,6 +3,7 @@ import BuildingProfilePage from "./pages/BuildingProfilePage";
 import OccupancySchedulePage from "./pages/OccupancySchedulePage";
 import ForecastsPage from "./pages/ForecastPage";
 import RecommendationsPage from "./pages/RecommendationsPage";
+import ApplyPlanPage from "./pages/ApplyPlanPage";
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
       <Route path="/import-occupancy" element={<OccupancySchedulePage />} />
       <Route path="/forecasts" element={<ForecastsPage />} />
       <Route path="/recommendations" element={<RecommendationsPage />} />
+      <Route path="/apply-plan" element={<ApplyPlanPage />} />
     </Routes>
   );
 }

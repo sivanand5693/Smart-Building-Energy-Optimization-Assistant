@@ -99,7 +99,6 @@ class RecommendationService:
 
         # 5. Persist
         rows: list[SetpointRecommendationModel] = []
-        ranked: list[RankedRecommendation] = []
         for idx, (zone_id, cand) in enumerate(flat, start=1):
             row = SetpointRecommendationModel(
                 building_id=building_id,
@@ -112,22 +111,26 @@ class RecommendationService:
                 model_version=cand.model_version,
             )
             rows.append(row)
-            ranked.append(
-                RankedRecommendation(
-                    building_id=building_id,
-                    zone_id=zone_id,
-                    zone_name=zone_name_by_id.get(zone_id, ""),
-                    run_timestamp=run_ts,
-                    setpoint_delta_f=cand.setpoint_delta_f,
-                    projected_savings_kwh=cand.projected_savings_kwh,
-                    comfort_impact=cand.comfort_impact,
-                    rank=idx,
-                    model_version=cand.model_version,
-                )
-            )
 
         if rows:
             self.rec_repo.save_all(rows)
+
+        ranked: list[RankedRecommendation] = []
+        for row in rows:
+            ranked.append(
+                RankedRecommendation(
+                    id=row.id,
+                    building_id=row.building_id,
+                    zone_id=row.zone_id,
+                    zone_name=zone_name_by_id.get(row.zone_id, ""),
+                    run_timestamp=row.run_timestamp,
+                    setpoint_delta_f=row.setpoint_delta_f,
+                    projected_savings_kwh=row.projected_savings_kwh,
+                    comfort_impact=row.comfort_impact,
+                    rank=row.rank,
+                    model_version=row.model_version,
+                )
+            )
 
         elapsed_ms = (time.perf_counter() - start) * 1000.0
         return RecommendationRunResult(
@@ -143,6 +146,7 @@ class RecommendationService:
         zone_names = {z.id: z.name for z in building.zones} if building else {}
         return [
             RankedRecommendation(
+                id=r.id,
                 building_id=r.building_id,
                 zone_id=r.zone_id,
                 zone_name=zone_names.get(r.zone_id, ""),

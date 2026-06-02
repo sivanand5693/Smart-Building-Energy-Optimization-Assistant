@@ -10,6 +10,9 @@ from app.infrastructure.models.zone_comfort_constraint_model import (
 from app.infrastructure.models.setpoint_recommendation_model import (
     SetpointRecommendationModel,
 )
+from app.infrastructure.models.applied_setpoint_change_model import (
+    AppliedSetpointChangeModel,
+)
 
 __all__ = [
     "BuildingModel",
@@ -20,4 +23,5 @@ __all__ = [
     "DemandForecastModel",
     "ZoneComfortConstraintModel",
     "SetpointRecommendationModel",
+    "AppliedSetpointChangeModel",
 ]

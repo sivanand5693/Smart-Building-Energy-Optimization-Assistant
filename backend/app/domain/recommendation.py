@@ -24,6 +24,7 @@ class RankedRecommendation:
     comfort_impact: str
     rank: int
     model_version: str
+    id: int | None = None
 
 
 @dataclass

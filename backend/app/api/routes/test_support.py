@@ -18,7 +18,14 @@ from app.infrastructure.adapters.optimization_adapter import (
     OptimizationAdapterDouble,
     registry as opt_registry,
 )
+from app.infrastructure.adapters.device_control_adapter import (
+    DeviceControlAdapterDouble,
+    registry as device_control_registry,
+)
 from app.infrastructure.models import ZoneComfortConstraintModel
+from app.infrastructure.repositories.applied_change_repository import (
+    DeviceRepository,
+)
 from app.infrastructure.repositories.recommendation_repository import (
     ZoneComfortConstraintRepository,
 )
@@ -185,3 +192,69 @@ def reset_optimization_double() -> dict:
     if isinstance(opt_registry.optimization, OptimizationAdapterDouble):
         opt_registry.optimization.reset()
     return {"ok": True}
+
+
+# -- UC5 test-support --------------------------------------------------------
+
+
+class DeviceControlDirectivePayload(BaseModel):
+    recommendation_id: int
+    outcome: str = "dispatched"
+    error_code: Optional[str] = None
+    adapter_message: Optional[str] = None
+    latency_ms: Optional[int] = None
+
+
+@router.post("/device_control/directive")
+def device_control_directive(body: DeviceControlDirectivePayload) -> dict:
+    assert isinstance(
+        device_control_registry.device_control, DeviceControlAdapterDouble
+    )
+    device_control_registry.device_control.set_directive(
+        recommendation_id=body.recommendation_id,
+        outcome=body.outcome,
+        error_code=body.error_code,
+        adapter_message=body.adapter_message,
+        latency_ms=body.latency_ms,
+    )
+    return {"ok": True}
+
+
+@router.post("/device_control/reset")
+def device_control_reset() -> dict:
+    if isinstance(
+        device_control_registry.device_control, DeviceControlAdapterDouble
+    ):
+        device_control_registry.device_control.reset()
+    return {"ok": True}
+
+
+@router.post("/device_control/force_db_error")
+def device_control_force_db_error() -> dict:
+    assert isinstance(
+        device_control_registry.device_control, DeviceControlAdapterDouble
+    )
+    device_control_registry.device_control.force_db_error_next_apply()
+    return {"ok": True}
+
+
+@router.get("/device_control/calls")
+def device_control_calls() -> dict:
+    if isinstance(
+        device_control_registry.device_control, DeviceControlAdapterDouble
+    ):
+        return {"calls": device_control_registry.device_control.calls()}
+    return {"calls": []}
+
+
+class ClearDevicesPayload(BaseModel):
+    zone_id: int
+
+
+@router.post("/devices/clear_for_zone")
+def clear_devices_for_zone(
+    body: ClearDevicesPayload,
+    db: Session = Depends(get_db),
+) -> dict:
+    deleted = DeviceRepository(db).delete_hvac_for_zone(body.zone_id)
+    return {"ok": True, "deleted": deleted}
