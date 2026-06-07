@@ -28,3 +28,26 @@ class OccupancyRepository:
             .order_by(OccupancyRecordModel.timestamp.desc())
             .first()
         )
+
+    def latest_for_zone_at_or_before(
+        self, zone_id: int, ts
+    ) -> OccupancyRecordModel | None:
+        from datetime import datetime as _dt
+
+        # `occupancy_records.timestamp` is stored as a naive timestamp in
+        # the project schema. If the caller passes an aware datetime we
+        # strip the tz so the comparison is apples-to-apples.
+        cmp_ts = ts
+        if isinstance(ts, _dt) and ts.tzinfo is not None:
+            cmp_ts = ts.replace(tzinfo=None)
+        return (
+            self.db.query(OccupancyRecordModel)
+            .filter(OccupancyRecordModel.zone_id == zone_id)
+            .filter(OccupancyRecordModel.timestamp <= cmp_ts)
+            .order_by(OccupancyRecordModel.timestamp.desc())
+            .first()
+        )
+
+    def add_no_commit(self, record: OccupancyRecordModel) -> None:
+        self.db.add(record)
+        self.db.flush()

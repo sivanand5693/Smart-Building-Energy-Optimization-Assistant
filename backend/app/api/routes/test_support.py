@@ -101,6 +101,36 @@ def clear_occupancy_for_zone(
     return {"ok": True}
 
 
+class SetOccupancyPayload(BaseModel):
+    zone_id: int
+    occupancy_count: int
+    timestamp: Optional[str] = None  # ISO; default 1970-01-01 so it sits well
+                                     # before any plan run_timestamp
+
+
+@router.post("/occupancy/set_for_zone")
+def set_occupancy_for_zone(
+    body: SetOccupancyPayload,
+    db: Session = Depends(get_db),
+) -> dict:
+    # Wipe existing rows for the zone so the materiality baseline lookup is
+    # deterministic, then insert one row with the requested count + ts.
+    db.execute(
+        text("DELETE FROM occupancy_records WHERE zone_id = :z"),
+        {"z": body.zone_id},
+    )
+    ts_clause = body.timestamp or "1970-01-01T00:00:00"
+    db.execute(
+        text(
+            "INSERT INTO occupancy_records (zone_id, timestamp, occupancy_count)"
+            " VALUES (:z, CAST(:t AS timestamp), :c)"
+        ),
+        {"z": body.zone_id, "t": ts_clause, "c": body.occupancy_count},
+    )
+    db.commit()
+    return {"ok": True}
+
+
 # -- UC4 test-support --------------------------------------------------------
 
 class SeedConstraintsPayload(BaseModel):

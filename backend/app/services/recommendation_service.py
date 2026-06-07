@@ -37,6 +37,27 @@ class RecommendationService:
         self.rec_repo = SetpointRecommendationRepository(db)
 
     def run(self, building_id: int) -> RecommendationRunResult:
+        """Public entry-point used by the route handler. Commits on success."""
+        return self.run_within(building_id, db=self.db, commit=True)
+
+    def run_within(
+        self,
+        building_id: int,
+        *,
+        db: Session,
+        commit: bool = False,
+    ) -> RecommendationRunResult:
+        """Shared implementation. When ``commit=False`` the new rows are
+        flushed but not committed — the caller owns the transaction (UC6 A7).
+        """
+        # Allow the caller to pass in a session (UC6 reuses the same session
+        # so the whole adapt request is one transaction). Rebind repos.
+        if db is not self.db:
+            self.db = db
+            self.forecast_repo = DemandForecastRepository(db)
+            self.constraint_repo = ZoneComfortConstraintRepository(db)
+            self.rec_repo = SetpointRecommendationRepository(db)
+
         start = time.perf_counter()
         run_ts = datetime.now(timezone.utc)
 
@@ -113,7 +134,10 @@ class RecommendationService:
             rows.append(row)
 
         if rows:
-            self.rec_repo.save_all(rows)
+            if commit:
+                self.rec_repo.save_all(rows)
+            else:
+                self.rec_repo.save_all_no_commit(rows)
 
         ranked: list[RankedRecommendation] = []
         for row in rows:

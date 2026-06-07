@@ -178,3 +178,51 @@ export async function getLatestPlan(
   if (!res.ok) return [];
   return (await res.json()) as AppliedChange[];
 }
+
+// -- UC6 AdaptPlanToOccupancyChange ----------------------------------------
+
+export interface OccupancyChangePayload {
+  zone_id: number;
+  new_occupancy_count: number;
+}
+
+export interface AdaptPlanResponse {
+  building_id: number;
+  decision: string;
+  reason: string;
+  active_plan_run_timestamp: string;
+  new_run_timestamp: string | null;
+  changed_zone_ids: number[];
+  requested_at: string;
+  elapsed_ms: number;
+  revised_recommendations: SetpointRecommendation[];
+}
+
+export type AdaptPlanResult =
+  | { ok: true; data: AdaptPlanResponse }
+  | { ok: false; missingInputs: string[]; status: number; message?: string };
+
+export async function adaptPlan(
+  buildingId: number,
+  changes: OccupancyChangePayload[],
+): Promise<AdaptPlanResult> {
+  const res = await fetch(`/api/buildings/${buildingId}/plan/adapt`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ occupancy_changes: changes }),
+  });
+  if (res.ok) {
+    return { ok: true, data: (await res.json()) as AdaptPlanResponse };
+  }
+  if (res.status === 400) {
+    const body = await res.json().catch(() => ({}));
+    const missingInputs = (body?.detail?.missingInputs as string[]) ?? [];
+    return { ok: false, missingInputs, status: 400 };
+  }
+  return {
+    ok: false,
+    missingInputs: [],
+    status: res.status,
+    message: `Server error (${res.status})`,
+  };
+}
