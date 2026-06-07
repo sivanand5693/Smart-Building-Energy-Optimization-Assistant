@@ -134,6 +134,14 @@ export default function RecommendationsPage() {
                   data-testid={`recommendation-zone-name-${r.rank}`}
                 >
                   {r.zone_name}
+                  {r.degraded_confidence && (
+                    <span
+                      data-testid={`degraded-badge-${r.zone_id}`}
+                      className="ml-2 rounded bg-yellow-200 px-2 py-0.5 text-xs text-yellow-900"
+                    >
+                      degraded
+                    </span>
+                  )}
                 </td>
                 <td
                   className="py-2"

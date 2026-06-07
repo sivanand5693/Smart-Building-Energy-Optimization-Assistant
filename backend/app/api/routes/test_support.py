@@ -463,3 +463,84 @@ def savings_force_db_error() -> dict:
 
     force_db_error_next_request()
     return {"ok": True}
+
+
+# -- UC10 test-support -------------------------------------------------------
+
+
+class SeedForecastForZonePayload(BaseModel):
+    zone_id: int
+    predicted_kwh: Optional[float] = 10.0
+    model_version: Optional[str] = "test-v0"
+    hours_ago: Optional[int] = 0
+
+
+@router.post("/forecasts/seed_for_zone")
+def seed_forecast_for_zone(
+    body: SeedForecastForZonePayload,
+    db: Session = Depends(get_db),
+) -> dict:
+    """UC10 — insert a demand_forecasts row for a zone with controllable
+    `created_at` (and `timestamp`) so we can drive the decision rule (A1)."""
+    db.execute(
+        text(
+            "INSERT INTO demand_forecasts "
+            "(zone_id, timestamp, predicted_kwh, model_version, created_at) "
+            "VALUES (:z, NOW() - (:h || ' hours')::interval, :k, :m, "
+            " NOW() - (:h || ' hours')::interval)"
+        ),
+        {
+            "z": body.zone_id,
+            "h": int(body.hours_ago or 0),
+            "k": float(body.predicted_kwh or 10.0),
+            "m": body.model_version or "test-v0",
+        },
+    )
+    db.commit()
+    return {"ok": True}
+
+
+class SeedRecommendationForZonePayload(BaseModel):
+    building_id: int
+    zone_id: int
+    setpoint_delta_f: Optional[float] = -1.0
+    projected_savings_kwh: Optional[float] = 5.0
+    comfort_impact: Optional[str] = "none"
+    rank: Optional[int] = 1
+    model_version: Optional[str] = "test-opt-v0"
+
+
+@router.post("/recommendations/seed_for_zone")
+def seed_recommendation_for_zone(
+    body: SeedRecommendationForZonePayload,
+    db: Session = Depends(get_db),
+) -> dict:
+    """UC10 — insert a setpoint_recommendations row with run_timestamp=NOW()."""
+    db.execute(
+        text(
+            "INSERT INTO setpoint_recommendations "
+            "(building_id, zone_id, run_timestamp, setpoint_delta_f, "
+            " projected_savings_kwh, comfort_impact, rank, model_version) "
+            "VALUES (:b, :z, NOW(), :d, :p, :ci, :r, :m)"
+        ),
+        {
+            "b": body.building_id,
+            "z": body.zone_id,
+            "d": float(body.setpoint_delta_f or -1.0),
+            "p": float(body.projected_savings_kwh or 5.0),
+            "ci": body.comfort_impact or "none",
+            "r": int(body.rank or 1),
+            "m": body.model_version or "test-opt-v0",
+        },
+    )
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/sensor_outage/force_db_error")
+def sensor_outage_force_db_error() -> dict:
+    """UC10 S11 — make the next SensorOutageService.handle raise mid-write."""
+    from app.services.sensor_outage_service import force_db_error_next_request
+
+    force_db_error_next_request()
+    return {"ok": True}

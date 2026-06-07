@@ -70,6 +70,30 @@ class DemandForecastRepository:
                 latest_per_zone.append(row)
         return latest_per_zone
 
+    def mark_latest_degraded_for_zone(self, zone_id: int) -> int | None:
+        """UC10 — set degraded_confidence=true on the most-recent demand_forecasts
+        row for the zone. Returns the updated row id, or None when the zone has
+        no forecast rows. No commit — caller owns the transaction."""
+        row = (
+            self.db.execute(
+                select(DemandForecastModel)
+                .where(DemandForecastModel.zone_id == zone_id)
+                .order_by(
+                    DemandForecastModel.created_at.desc(),
+                    DemandForecastModel.id.desc(),
+                )
+                .limit(1)
+            )
+            .scalars()
+            .first()
+        )
+        if row is None:
+            return None
+        if not row.degraded_confidence:
+            row.degraded_confidence = True
+            self.db.flush()
+        return row.id
+
     def count_for_building(self, building_id: int) -> int:
         zone_ids = [
             z.id

@@ -134,6 +134,14 @@ export default function ForecastsPage() {
                   data-testid={`forecast-predicted-kwh-${f.zone_id}`}
                 >
                   {Number(f.predicted_kwh).toFixed(2)}
+                  {f.degraded_confidence && (
+                    <span
+                      data-testid={`degraded-badge-${f.zone_id}`}
+                      className="ml-2 rounded bg-yellow-200 px-2 py-0.5 text-xs text-yellow-900"
+                    >
+                      degraded
+                    </span>
+                  )}
                 </td>
                 <td
                   className="py-2"

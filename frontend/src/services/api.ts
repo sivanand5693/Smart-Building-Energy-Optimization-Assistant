@@ -351,6 +351,73 @@ export async function runSavingsReport(
   };
 }
 
+// -- UC10 HandleSensorDataOutage --------------------------------------------
+
+export interface SensorOutageResponse {
+  event_id: number | null;
+  building_id: number;
+  affected_zone_ids: number[];
+  decision: string;
+  notes: string;
+  degraded_forecast_zone_ids: number[];
+  degraded_recommendation_ids: number[];
+  elapsed_ms: number;
+  declared_at: string | null;
+}
+
+export interface SensorOutageEvent {
+  id: number;
+  building_id: number;
+  declared_at: string;
+  affected_zone_ids: number[];
+  reason: string;
+  decision: string;
+  notes: string;
+  elapsed_ms: number;
+}
+
+export type SensorOutageResult =
+  | { ok: true; data: SensorOutageResponse }
+  | { ok: false; missingInputs: string[]; status: number; message?: string };
+
+export async function declareSensorOutage(
+  buildingId: number,
+  affectedZoneIds: number[],
+  reason: string,
+): Promise<SensorOutageResult> {
+  const res = await fetch(`/api/sensors/outage/handle`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      building_id: buildingId,
+      affected_zone_ids: affectedZoneIds,
+      reason,
+    }),
+  });
+  if (res.ok) {
+    return { ok: true, data: (await res.json()) as SensorOutageResponse };
+  }
+  if (res.status === 400) {
+    const body = await res.json().catch(() => ({}));
+    const missingInputs = (body?.detail?.missingInputs as string[]) ?? [];
+    return { ok: false, missingInputs, status: 400 };
+  }
+  return {
+    ok: false,
+    missingInputs: [],
+    status: res.status,
+    message: `Server error (${res.status})`,
+  };
+}
+
+export async function listSensorOutages(
+  buildingId: number,
+): Promise<SensorOutageEvent[]> {
+  const res = await fetch(`/api/buildings/${buildingId}/sensor-outages`);
+  if (!res.ok) return [];
+  return (await res.json()) as SensorOutageEvent[];
+}
+
 export async function runComfortRisk(
   buildingId: number,
 ): Promise<ComfortRiskResult> {

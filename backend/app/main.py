@@ -11,6 +11,7 @@ from app.api.routes import (
     plans,
     recommendations,
     reporting,
+    sensor_outage,
 )
 from app.infrastructure.adapters.device_control_adapter import (
     use_test_doubles as use_device_control_test_doubles,
@@ -40,6 +41,7 @@ app.include_router(plans.router)
 app.include_router(comfort_risk.router)
 app.include_router(explanations.router)
 app.include_router(reporting.router)
+app.include_router(sensor_outage.router)
 
 
 if os.environ.get("TESTING") == "1":

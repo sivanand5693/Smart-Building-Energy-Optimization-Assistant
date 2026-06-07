@@ -25,6 +25,7 @@ class RecommendationOut(BaseModel):
     comfort_impact: str
     rank: int
     model_version: str
+    degraded_confidence: bool = False
 
 
 class RecommendationRunResponse(BaseModel):

@@ -41,6 +41,7 @@ cd frontend && npm run dev          # Vite dev server on :5173
 - UC7 DetectComfortViolationRisk → `/comfort-risk`
 - UC8 ExplainRecommendation → `/explain`
 - UC9 GenerateDailySavingsReport → `/savings-report`
+- UC10 HandleSensorDataOutage → `/sensor-outage`
 
 ### Database
 ```bash
@@ -51,7 +52,7 @@ alembic upgrade head                 # dev DB
 TESTING=1 alembic upgrade head       # test DB
 ```
 
-**DB viewer (VS Code):** Install the **SQLTools** extension + **SQLTools PostgreSQL/Cockroach Driver** (`mtxr.sqltools-driver-pg`). Add a connection to `smart_building_dev` — Server `localhost`, Port `5432`, Database `smart_building_dev`, Username `sivanand` (macOS user), no password (local trust auth). Nine demo-relevant tables: `buildings`, `zones`, `devices`, `operating_schedules`, `occupancy_records`, `demand_forecasts`, `zone_comfort_constraints`, `setpoint_recommendations`, `applied_setpoint_changes`. `alembic_version` is the migration tracker — ignore for demos. Right-click a table → **Show Table Records** → pin tabs; click refresh after each UI action.
+**DB viewer (VS Code):** Install the **SQLTools** extension + **SQLTools PostgreSQL/Cockroach Driver** (`mtxr.sqltools-driver-pg`). Add a connection to `smart_building_dev` — Server `localhost`, Port `5432`, Database `smart_building_dev`, Username `sivanand` (macOS user), no password (local trust auth). Ten demo-relevant tables: `buildings`, `zones`, `devices`, `operating_schedules`, `occupancy_records`, `demand_forecasts`, `zone_comfort_constraints`, `setpoint_recommendations`, `applied_setpoint_changes`, `sensor_outage_events`. `alembic_version` is the migration tracker — ignore for demos. Right-click a table → **Show Table Records** → pin tabs; click refresh after each UI action.
 
 ### Acceptance Tests
 Behave auto-starts the backend in `TESTING=1` mode on port 8000 against `smart_building_test`. Vite must be running in another terminal for UI scenarios.

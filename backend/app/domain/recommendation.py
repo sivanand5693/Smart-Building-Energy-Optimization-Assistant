@@ -25,6 +25,7 @@ class RankedRecommendation:
     rank: int
     model_version: str
     id: int | None = None
+    degraded_confidence: bool = False
 
 
 @dataclass

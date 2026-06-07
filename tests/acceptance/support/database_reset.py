@@ -8,7 +8,8 @@ def reset_test_database() -> None:
     with engine.begin() as conn:
         conn.execute(
             text(
-                "TRUNCATE daily_savings_report_lines, daily_savings_reports, "
+                "TRUNCATE sensor_outage_events, "
+                "daily_savings_report_lines, daily_savings_reports, "
                 "energy_usage_records, "
                 "recommendation_explanations, comfort_risk_alerts, "
                 "comfort_risk_runs, "

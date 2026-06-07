@@ -56,6 +56,7 @@ export interface ZoneForecast {
   timestamp: string;
   predicted_kwh: string;
   model_version: string;
+  degraded_confidence?: boolean;
 }
 
 export interface ForecastRunResponse {
@@ -76,6 +77,7 @@ export interface SetpointRecommendation {
   comfort_impact: string;
   rank: number;
   model_version: string;
+  degraded_confidence?: boolean;
 }
 
 export interface RecommendationRunResponse {

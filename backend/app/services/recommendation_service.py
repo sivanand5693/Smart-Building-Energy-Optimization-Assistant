@@ -180,6 +180,9 @@ class RecommendationService:
                 comfort_impact=r.comfort_impact,
                 rank=r.rank,
                 model_version=r.model_version,
+                degraded_confidence=bool(
+                    getattr(r, "degraded_confidence", False)
+                ),
             )
             for r in rows
         ]

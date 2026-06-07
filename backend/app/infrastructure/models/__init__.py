@@ -28,6 +28,9 @@ from app.infrastructure.models.energy_usage_models import (
     DailySavingsReportModel,
     EnergyUsageRecordModel,
 )
+from app.infrastructure.models.sensor_outage_event_model import (
+    SensorOutageEventModel,
+)
 
 __all__ = [
     "BuildingModel",
@@ -46,4 +49,5 @@ __all__ = [
     "EnergyUsageRecordModel",
     "DailySavingsReportModel",
     "DailySavingsReportLineModel",
+    "SensorOutageEventModel",
 ]

@@ -17,6 +17,7 @@ class ZoneForecast:
     timestamp: datetime
     predicted_kwh: Decimal
     model_version: str
+    degraded_confidence: bool = False
 
 
 @dataclass

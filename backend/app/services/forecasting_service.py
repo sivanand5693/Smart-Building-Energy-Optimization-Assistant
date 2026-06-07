@@ -104,6 +104,9 @@ class ForecastService:
                 timestamp=r.timestamp,
                 predicted_kwh=r.predicted_kwh,
                 model_version=r.model_version,
+                degraded_confidence=bool(
+                    getattr(r, "degraded_confidence", False)
+                ),
             )
             for r in rows
         ]

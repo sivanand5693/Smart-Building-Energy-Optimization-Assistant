@@ -113,6 +113,49 @@ class SetpointRecommendationRepository:
             .count()
         )
 
+    def mark_latest_run_degraded_for_zones(
+        self, building_id: int, zone_ids: list[int]
+    ) -> list[int]:
+        """UC10 — set degraded_confidence=true on every setpoint_recommendations
+        row whose (building_id, run_timestamp) matches the latest run for the
+        building AND whose zone_id is in zone_ids. Returns the updated row ids.
+        No commit — caller owns the transaction."""
+        if not zone_ids:
+            return []
+        latest_ts = (
+            self.db.execute(
+                select(SetpointRecommendationModel.run_timestamp)
+                .where(SetpointRecommendationModel.building_id == building_id)
+                .where(SetpointRecommendationModel.zone_id.in_(zone_ids))
+                .order_by(SetpointRecommendationModel.run_timestamp.desc())
+                .limit(1)
+            )
+            .scalars()
+            .first()
+        )
+        if latest_ts is None:
+            return []
+        rows = list(
+            self.db.execute(
+                select(SetpointRecommendationModel)
+                .where(SetpointRecommendationModel.building_id == building_id)
+                .where(SetpointRecommendationModel.run_timestamp == latest_ts)
+                .where(SetpointRecommendationModel.zone_id.in_(zone_ids))
+            )
+            .scalars()
+            .all()
+        )
+        updated: list[int] = []
+        for r in rows:
+            if not r.degraded_confidence:
+                r.degraded_confidence = True
+                updated.append(r.id)
+            else:
+                updated.append(r.id)
+        if rows:
+            self.db.flush()
+        return updated
+
 
 class ZoneComfortConstraintRepository:
     def __init__(self, db: Session):

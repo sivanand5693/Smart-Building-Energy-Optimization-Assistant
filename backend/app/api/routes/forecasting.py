@@ -20,6 +20,7 @@ class ZoneForecastOut(BaseModel):
     timestamp: datetime
     predicted_kwh: Decimal
     model_version: str
+    degraded_confidence: bool = False
 
 
 class ForecastRunResponse(BaseModel):
