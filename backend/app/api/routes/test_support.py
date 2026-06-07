@@ -340,3 +340,77 @@ def comfort_risk_force_db_error() -> dict:
 
     force_db_error_next_run()
     return {"ok": True}
+
+
+# -- UC8 test-support --------------------------------------------------------
+
+
+class CopyRecommendationFieldsPayload(BaseModel):
+    src_zone_id: int
+    dst_zone_id: int
+
+
+@router.post("/recommendations/copy_fields_between_zones")
+def copy_recommendation_fields_between_zones(
+    body: CopyRecommendationFieldsPayload,
+    db: Session = Depends(get_db),
+) -> dict:
+    """UC8 S04 — copy the latest setpoint_recommendations row's deterministic
+    factor fields (projected_savings_kwh, comfort_impact, setpoint_delta_f)
+    from src zone onto dst zone so the two zones present identical inputs to
+    the ExplanationAdapter."""
+    db.execute(
+        text(
+            "UPDATE setpoint_recommendations dst "
+            "SET projected_savings_kwh = src.projected_savings_kwh, "
+            "    comfort_impact = src.comfort_impact, "
+            "    setpoint_delta_f = src.setpoint_delta_f "
+            "FROM ( "
+            "  SELECT projected_savings_kwh, comfort_impact, setpoint_delta_f "
+            "  FROM setpoint_recommendations "
+            "  WHERE zone_id = :s "
+            "  ORDER BY run_timestamp DESC LIMIT 1 "
+            ") src "
+            "WHERE dst.zone_id = :d AND dst.run_timestamp = ("
+            "  SELECT MAX(run_timestamp) FROM setpoint_recommendations "
+            "  WHERE zone_id = :d)"
+        ),
+        {"s": body.src_zone_id, "d": body.dst_zone_id},
+    )
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/explanation/reset")
+def explanation_reset() -> dict:
+    """UC8 — reset the ExplanationAdapter double's invocation counter."""
+    from app.infrastructure.adapters.explanation_adapter import (
+        registry as explanation_registry,
+    )
+
+    adapter = explanation_registry.explanation
+    reset_fn = getattr(adapter, "reset", None)
+    if callable(reset_fn):
+        reset_fn()
+    return {"ok": True}
+
+
+@router.get("/explanation/calls")
+def explanation_calls() -> dict:
+    """UC8 — return the double's invocation counter (S03 idempotency oracle)."""
+    from app.infrastructure.adapters.explanation_adapter import (
+        registry as explanation_registry,
+    )
+
+    adapter = explanation_registry.explanation
+    calls = getattr(adapter, "calls_count", 0)
+    return {"calls": int(calls)}
+
+
+@router.post("/explanation/force_db_error")
+def explanation_force_db_error() -> dict:
+    """UC8 S14 — make the next ExplanationService.explain raise mid-write."""
+    from app.services.explanation_service import force_db_error_next_request
+
+    force_db_error_next_request()
+    return {"ok": True}

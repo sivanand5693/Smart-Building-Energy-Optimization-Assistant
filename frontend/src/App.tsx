@@ -6,6 +6,7 @@ import RecommendationsPage from "./pages/RecommendationsPage";
 import ApplyPlanPage from "./pages/ApplyPlanPage";
 import AdaptPlanPage from "./pages/AdaptPlanPage";
 import ComfortRiskPage from "./pages/ComfortRiskPage";
+import ExplainPage from "./pages/ExplainPage";
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
       <Route path="/apply-plan" element={<ApplyPlanPage />} />
       <Route path="/adapt-plan" element={<AdaptPlanPage />} />
       <Route path="/comfort-risk" element={<ComfortRiskPage />} />
+      <Route path="/explain" element={<ExplainPage />} />
     </Routes>
   );
 }

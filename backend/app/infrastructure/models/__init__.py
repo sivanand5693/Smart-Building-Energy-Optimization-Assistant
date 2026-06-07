@@ -20,6 +20,9 @@ from app.infrastructure.models.comfort_risk_models import (
     ComfortRiskAlertModel,
     ComfortRiskRunModel,
 )
+from app.infrastructure.models.recommendation_explanation_model import (
+    RecommendationExplanationModel,
+)
 
 __all__ = [
     "BuildingModel",
@@ -34,4 +37,5 @@ __all__ = [
     "PlanAdaptationEventModel",
     "ComfortRiskRunModel",
     "ComfortRiskAlertModel",
+    "RecommendationExplanationModel",
 ]

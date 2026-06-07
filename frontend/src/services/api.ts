@@ -254,6 +254,45 @@ export type ComfortRiskResult =
   | { ok: true; data: ComfortRiskRunResponse }
   | { ok: false; missingInputs: string[]; status: number; message?: string };
 
+// -- UC8 ExplainRecommendation ---------------------------------------------
+
+export interface ExplanationResponse {
+  recommendation_id: number;
+  text: string;
+  factors: Record<string, string>;
+  cached: boolean;
+  elapsed_ms: number;
+  model_version: string;
+  generated_at: string | null;
+}
+
+export type ExplanationResult =
+  | { ok: true; data: ExplanationResponse }
+  | { ok: false; missingInputs: string[]; status: number; message?: string };
+
+export async function explainRecommendation(
+  recommendationId: number,
+): Promise<ExplanationResult> {
+  const res = await fetch(
+    `/api/recommendations/${recommendationId}/explain`,
+    { method: "POST" },
+  );
+  if (res.ok) {
+    return { ok: true, data: (await res.json()) as ExplanationResponse };
+  }
+  if (res.status === 400) {
+    const body = await res.json().catch(() => ({}));
+    const missingInputs = (body?.detail?.missingInputs as string[]) ?? [];
+    return { ok: false, missingInputs, status: 400 };
+  }
+  return {
+    ok: false,
+    missingInputs: [],
+    status: res.status,
+    message: `Server error (${res.status})`,
+  };
+}
+
 export async function runComfortRisk(
   buildingId: number,
 ): Promise<ComfortRiskResult> {

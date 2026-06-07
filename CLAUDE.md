@@ -39,6 +39,7 @@ cd frontend && npm run dev          # Vite dev server on :5173
 - UC5 ApplyApprovedEnergyPlan → `/apply-plan`
 - UC6 AdaptPlanToOccupancyChange → `/adapt-plan`
 - UC7 DetectComfortViolationRisk → `/comfort-risk`
+- UC8 ExplainRecommendation → `/explain`
 
 ### Database
 ```bash

@@ -12,6 +12,27 @@ class DemandForecastRepository:
         self.db.add_all(rows)
         self.db.commit()
 
+    def latest_for_zone_at_or_before(
+        self, zone_id: int, ts
+    ) -> DemandForecastModel | None:
+        """UC8 — locate the forecast row used by a recommendation.
+
+        UC4 calls ``latest_for_zone(zone_id)`` at the moment of recommendation
+        generation, so the matching forecast row is the latest one whose
+        ``timestamp <= recommendation.run_timestamp``.
+        """
+        return (
+            self.db.execute(
+                select(DemandForecastModel)
+                .where(DemandForecastModel.zone_id == zone_id)
+                .where(DemandForecastModel.timestamp <= ts)
+                .order_by(DemandForecastModel.timestamp.desc())
+                .limit(1)
+            )
+            .scalars()
+            .first()
+        )
+
     def latest_for_zone(self, zone_id: int) -> DemandForecastModel | None:
         return (
             self.db.execute(
