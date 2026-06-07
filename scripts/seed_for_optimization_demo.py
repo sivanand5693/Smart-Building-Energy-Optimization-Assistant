@@ -29,6 +29,14 @@ API_BASE = "http://localhost:8000"
 
 
 TABLES_IN_TRUNCATE_ORDER = [
+    "sensor_outage_events",
+    "daily_savings_report_lines",
+    "daily_savings_reports",
+    "energy_usage_records",
+    "recommendation_explanations",
+    "comfort_risk_alerts",
+    "comfort_risk_runs",
+    "plan_adaptation_events",
     "applied_setpoint_changes",
     "setpoint_recommendations",
     "zone_comfort_constraints",
@@ -95,6 +103,22 @@ def seed_db(cur) -> tuple[int, list[int]]:
             (zid,),
         )
 
+    # UC9 baseline + actual energy usage for a fixed reporting day
+    report_date = "2026-06-01"
+    for zid in zone_ids:
+        cur.execute(
+            "INSERT INTO energy_usage_records "
+            "(building_id, zone_id, usage_date, kind, kwh) "
+            "VALUES (%s, %s, %s, 'baseline', %s)",
+            (building_id, zid, report_date, 100.0),
+        )
+        cur.execute(
+            "INSERT INTO energy_usage_records "
+            "(building_id, zone_id, usage_date, kind, kwh) "
+            "VALUES (%s, %s, %s, 'actual', %s)",
+            (building_id, zid, report_date, 80.0),
+        )
+
     return building_id, zone_ids
 
 
@@ -144,6 +168,7 @@ def main() -> int:
     print("Seed complete.")
     print(f"  building_id = {building_id}")
     print(f"  zone_ids    = {zone_ids}")
+    print("  energy_usage_records seeded for 2026-06-01 (baseline=100, actual=80 per zone)")
     print("Next: open http://localhost:5173/forecasts and click Run Forecast.")
     return 0
 
