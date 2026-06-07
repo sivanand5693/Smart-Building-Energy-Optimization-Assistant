@@ -226,3 +226,52 @@ export async function adaptPlan(
     message: `Server error (${res.status})`,
   };
 }
+
+// -- UC7 DetectComfortViolationRisk ----------------------------------------
+
+export interface ComfortRiskAlertItem {
+  zone_id: number;
+  zone_name: string;
+  projected_temp_f: string;
+  occupied_min_f: string;
+  occupied_max_f: string;
+  risk_score: string;
+  direction: string;
+  mitigation: string;
+}
+
+export interface ComfortRiskRunResponse {
+  building_id: number;
+  decision: string;
+  alerts_count: number;
+  source_run_timestamp: string | null;
+  run_at: string | null;
+  elapsed_ms: number;
+  alerts: ComfortRiskAlertItem[];
+}
+
+export type ComfortRiskResult =
+  | { ok: true; data: ComfortRiskRunResponse }
+  | { ok: false; missingInputs: string[]; status: number; message?: string };
+
+export async function runComfortRisk(
+  buildingId: number,
+): Promise<ComfortRiskResult> {
+  const res = await fetch(`/api/buildings/${buildingId}/comfort-risk/run`, {
+    method: "POST",
+  });
+  if (res.ok) {
+    return { ok: true, data: (await res.json()) as ComfortRiskRunResponse };
+  }
+  if (res.status === 400) {
+    const body = await res.json().catch(() => ({}));
+    const missingInputs = (body?.detail?.missingInputs as string[]) ?? [];
+    return { ok: false, missingInputs, status: 400 };
+  }
+  return {
+    ok: false,
+    missingInputs: [],
+    status: res.status,
+    message: `Server error (${res.status})`,
+  };
+}

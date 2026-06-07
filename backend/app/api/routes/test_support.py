@@ -288,3 +288,55 @@ def clear_devices_for_zone(
 ) -> dict:
     deleted = DeviceRepository(db).delete_hvac_for_zone(body.zone_id)
     return {"ok": True, "deleted": deleted}
+
+
+# -- UC7 test-support --------------------------------------------------------
+
+
+class SetDeltaForZonePayload(BaseModel):
+    zone_id: int
+    setpoint_delta_f: float
+
+
+@router.post("/recommendations/set_delta_for_zone")
+def set_delta_for_zone(
+    body: SetDeltaForZonePayload,
+    db: Session = Depends(get_db),
+) -> dict:
+    """Override the latest setpoint_recommendations row's setpoint_delta_f for
+    a zone (in the most recent run). Used by UC7 scenarios for crisp math."""
+    db.execute(
+        text(
+            "UPDATE setpoint_recommendations SET setpoint_delta_f = :d "
+            "WHERE zone_id = :z AND run_timestamp = ("
+            "  SELECT MAX(run_timestamp) FROM setpoint_recommendations "
+            "  WHERE zone_id = :z)"
+        ),
+        {"d": body.setpoint_delta_f, "z": body.zone_id},
+    )
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/recommendations/clear_for_zone")
+def clear_recs_for_zone(
+    body: ZoneOnlyPayload,
+    db: Session = Depends(get_db),
+) -> dict:
+    """Delete all setpoint_recommendations rows for the given zone. Used by
+    UC7-S10 (partial plan coverage)."""
+    db.execute(
+        text("DELETE FROM setpoint_recommendations WHERE zone_id = :z"),
+        {"z": body.zone_id},
+    )
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/comfort_risk/force_db_error")
+def comfort_risk_force_db_error() -> dict:
+    """S14 — make the next ComfortRiskService.run raise mid-write."""
+    from app.services.comfort_risk_service import force_db_error_next_run
+
+    force_db_error_next_run()
+    return {"ok": True}

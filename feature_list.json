@@ -52,7 +52,9 @@
       "id": "UC7",
       "name": "DetectComfortViolationRisk",
       "description": "Scheduler detects upcoming comfort violation risk for a zone and surfaces a warning to the facility manager.",
-      "status": "not-started"
+      "status": "pass",
+      "evidence": "17/17 scenarios pass via Behave on first run; no T4 needed. Regression 118/118 across UC1+UC2+UC3+UC4+UC5+UC6+UC7. See docs/UC7/acceptance_status.md.",
+      "testedAt": "2026-06-07"
     },
     {
       "id": "UC8",

@@ -45,6 +45,39 @@ class SetpointRecommendationRepository:
             .first()
         )
 
+    def latest_run_timestamp_for_building(
+        self, building_id: int
+    ) -> datetime | None:
+        """Return the latest setpoint_recommendations.run_timestamp for the
+        building, regardless of applied state (UC7 A3 — "active or proposed").
+        """
+        return (
+            self.db.execute(
+                select(SetpointRecommendationModel.run_timestamp)
+                .where(SetpointRecommendationModel.building_id == building_id)
+                .order_by(SetpointRecommendationModel.run_timestamp.desc())
+                .limit(1)
+            )
+            .scalars()
+            .first()
+        )
+
+    def latest_rows_for_building(
+        self, building_id: int, run_timestamp: datetime
+    ) -> list[SetpointRecommendationModel]:
+        """All setpoint_recommendations rows for the building at the given
+        run_timestamp. Used by UC7 to look up `setpoint_delta_f` per zone."""
+        return list(
+            self.db.execute(
+                select(SetpointRecommendationModel)
+                .where(SetpointRecommendationModel.building_id == building_id)
+                .where(SetpointRecommendationModel.run_timestamp == run_timestamp)
+                .order_by(SetpointRecommendationModel.zone_id.asc())
+            )
+            .scalars()
+            .all()
+        )
+
     def latest_for_building(
         self, building_id: int
     ) -> list[SetpointRecommendationModel]:

@@ -5,6 +5,7 @@ import ForecastsPage from "./pages/ForecastPage";
 import RecommendationsPage from "./pages/RecommendationsPage";
 import ApplyPlanPage from "./pages/ApplyPlanPage";
 import AdaptPlanPage from "./pages/AdaptPlanPage";
+import ComfortRiskPage from "./pages/ComfortRiskPage";
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
       <Route path="/recommendations" element={<RecommendationsPage />} />
       <Route path="/apply-plan" element={<ApplyPlanPage />} />
       <Route path="/adapt-plan" element={<AdaptPlanPage />} />
+      <Route path="/comfort-risk" element={<ComfortRiskPage />} />
     </Routes>
   );
 }

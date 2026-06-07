@@ -16,6 +16,10 @@ from app.infrastructure.models.applied_setpoint_change_model import (
 from app.infrastructure.models.plan_adaptation_event_model import (
     PlanAdaptationEventModel,
 )
+from app.infrastructure.models.comfort_risk_models import (
+    ComfortRiskAlertModel,
+    ComfortRiskRunModel,
+)
 
 __all__ = [
     "BuildingModel",
@@ -28,4 +32,6 @@ __all__ = [
     "SetpointRecommendationModel",
     "AppliedSetpointChangeModel",
     "PlanAdaptationEventModel",
+    "ComfortRiskRunModel",
+    "ComfortRiskAlertModel",
 ]

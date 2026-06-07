@@ -3,7 +3,13 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import building, forecasting, plans, recommendations
+from app.api.routes import (
+    building,
+    comfort_risk,
+    forecasting,
+    plans,
+    recommendations,
+)
 from app.infrastructure.adapters.device_control_adapter import (
     use_test_doubles as use_device_control_test_doubles,
 )
@@ -26,6 +32,7 @@ app.include_router(building.router)
 app.include_router(forecasting.router)
 app.include_router(recommendations.router)
 app.include_router(plans.router)
+app.include_router(comfort_risk.router)
 
 
 if os.environ.get("TESTING") == "1":
