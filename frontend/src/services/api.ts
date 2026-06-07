@@ -293,6 +293,64 @@ export async function explainRecommendation(
   };
 }
 
+// -- UC9 GenerateDailySavingsReport ----------------------------------------
+
+export interface SavingsReportLine {
+  zone_id: number;
+  baseline_kwh: string;
+  actual_kwh: string;
+  savings_kwh: string;
+  savings_pct: string;
+  anomaly_flag: boolean;
+  anomaly_reason: string | null;
+}
+
+export interface DailySavingsReportResponse {
+  report_id: number | null;
+  building_id: number;
+  report_date: string;
+  total_baseline_kwh: string;
+  total_actual_kwh: string;
+  total_savings_kwh: string;
+  total_savings_pct: string;
+  lines: SavingsReportLine[];
+  cached: boolean;
+  elapsed_ms: number;
+  generated_at: string | null;
+}
+
+export type SavingsReportResult =
+  | { ok: true; data: DailySavingsReportResponse }
+  | { ok: false; missingInputs: string[]; status: number; message?: string };
+
+export async function runSavingsReport(
+  buildingId: number,
+  reportDate: string,
+): Promise<SavingsReportResult> {
+  const res = await fetch(
+    `/api/buildings/${buildingId}/savings-reports/run`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ report_date: reportDate }),
+    },
+  );
+  if (res.ok) {
+    return { ok: true, data: (await res.json()) as DailySavingsReportResponse };
+  }
+  if (res.status === 400) {
+    const body = await res.json().catch(() => ({}));
+    const missingInputs = (body?.detail?.missingInputs as string[]) ?? [];
+    return { ok: false, missingInputs, status: 400 };
+  }
+  return {
+    ok: false,
+    missingInputs: [],
+    status: res.status,
+    message: `Server error (${res.status})`,
+  };
+}
+
 export async function runComfortRisk(
   buildingId: number,
 ): Promise<ComfortRiskResult> {

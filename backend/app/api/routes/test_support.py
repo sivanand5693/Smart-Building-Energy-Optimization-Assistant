@@ -414,3 +414,52 @@ def explanation_force_db_error() -> dict:
 
     force_db_error_next_request()
     return {"ok": True}
+
+
+# -- UC9 test-support --------------------------------------------------------
+
+
+class EnergyUsageIngestItem(BaseModel):
+    building_id: int
+    zone_id: int
+    usage_date: str  # YYYY-MM-DD
+    kind: str  # 'baseline' | 'actual'
+    kwh: float
+
+
+class EnergyUsageIngestPayload(BaseModel):
+    rows: list[EnergyUsageIngestItem]
+
+
+@router.post("/energy_usage/ingest")
+def energy_usage_ingest(
+    body: EnergyUsageIngestPayload,
+    db: Session = Depends(get_db),
+) -> dict:
+    """UC9 — seed baseline / actual rows into `energy_usage_records`."""
+    from datetime import date as _date
+    from decimal import Decimal as _Decimal
+
+    from app.infrastructure.repositories.energy_usage_repository import (
+        EnergyUsageRepository,
+    )
+
+    repo = EnergyUsageRepository(db)
+    for item in body.rows:
+        repo.ingest(
+            building_id=item.building_id,
+            zone_id=item.zone_id,
+            usage_date=_date.fromisoformat(item.usage_date),
+            kind=item.kind,
+            kwh=_Decimal(str(item.kwh)),
+        )
+    return {"ok": True, "count": len(body.rows)}
+
+
+@router.post("/savings/force_db_error")
+def savings_force_db_error() -> dict:
+    """UC9 S14 — make the next ReportingService.generate raise mid-write."""
+    from app.services.reporting_service import force_db_error_next_request
+
+    force_db_error_next_request()
+    return {"ok": True}

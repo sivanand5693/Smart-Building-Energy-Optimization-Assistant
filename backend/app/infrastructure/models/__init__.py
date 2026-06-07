@@ -23,6 +23,11 @@ from app.infrastructure.models.comfort_risk_models import (
 from app.infrastructure.models.recommendation_explanation_model import (
     RecommendationExplanationModel,
 )
+from app.infrastructure.models.energy_usage_models import (
+    DailySavingsReportLineModel,
+    DailySavingsReportModel,
+    EnergyUsageRecordModel,
+)
 
 __all__ = [
     "BuildingModel",
@@ -38,4 +43,7 @@ __all__ = [
     "ComfortRiskRunModel",
     "ComfortRiskAlertModel",
     "RecommendationExplanationModel",
+    "EnergyUsageRecordModel",
+    "DailySavingsReportModel",
+    "DailySavingsReportLineModel",
 ]
